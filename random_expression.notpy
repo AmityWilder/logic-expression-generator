@@ -1,0 +1,270 @@
+import random
+from typing import Set, Tuple
+import re
+import json
+
+
+def generate_random_boolean_expression_impl(
+    n: int, 
+    min_depth: int, 
+    max_depth: int,
+    operators: list = None
+) -> str:
+    """
+    Generate a random boolean expression with exactly n inputs and depth in [min_depth, max_depth].
+    
+    Args:
+        n: Number of unique input variables (will be named x, y, z, w, ...)
+        min_depth: Minimum depth of the expression tree
+        max_depth: Maximum depth of the expression tree
+        operators: List of operators to use. Default is ['AND', 'OR', 'NOT', 'XOR']
+    
+    Returns:
+        A LaTeX string representation of the boolean expression
+        
+    Raises:
+        ValueError: If constraints cannot be satisfied
+    """
+    if n < 1:
+        raise ValueError("Must have at least 1 input")
+    if min_depth < 1:
+        raise ValueError("Minimum depth must be at least 1")
+    if max_depth < min_depth:
+        raise ValueError("Maximum depth must be >= minimum depth")
+    
+    if operators is None:
+        operators = ['AND', 'OR', 'NOT', 'XOR']
+    
+    # Separate unary and binary operators
+    unary_ops = [op for op in operators if op == 'NOT']
+    binary_ops = [op for op in operators if op != 'NOT']
+    
+    if not binary_ops and not unary_ops:
+        raise ValueError("Must provide at least one operator")
+    
+    # Available variable names - start with x, y, z, w, then continue with subscripts
+    base_names = ['x', 'y', 'z', 'w']
+    all_variables = []
+    for i in range(n):
+        if i < len(base_names):
+            all_variables.append(base_names[i])
+        else:
+            # After w, use v_0, v_1, v_2, etc.
+            all_variables.append(f'v_{{{i - len(base_names)}}}')
+    
+    def get_expr_vars(expr):
+        """Extract all variables from an expression string."""
+        return set(re.findall(r'v_\{\d+\}|[xyzw]', expr))
+    
+    def build_expr(current_depth: int, target_depth: int, used_vars: Set[str]) -> Tuple[str, Set[str]]:
+        """
+        Recursively build an expression.
+        
+        Args:
+            current_depth: Current depth in the tree (leaves are at depth 1)
+            target_depth: Target depth for this subtree
+            used_vars: Set of variables used so far in the overall expression
+            
+        Returns:
+            Tuple of (latex_expression_string, updated_used_vars_set)
+        """
+        # If we've reached target depth, return a variable
+        if current_depth >= target_depth:
+            # Try to use an unused variable
+            unused = [v for v in all_variables if v not in used_vars]
+            if unused:
+                var = random.choice(unused)
+                return var, used_vars | {var}
+            # All variables used, pick any
+            return random.choice(all_variables), used_vars
+        
+        # Choose operator type
+        can_use_binary = len(binary_ops) > 0
+        can_use_unary = len(unary_ops) > 0
+        
+        # Prefer binary operators to build wider trees
+        if can_use_binary and can_use_unary:
+            use_binary = random.random() < 0.75  # 75% chance of binary
+        elif can_use_binary:
+            use_binary = True
+        else:
+            use_binary = False
+        
+        if use_binary:
+            # Binary operator
+            op = random.choice(binary_ops)
+            
+            # Decide depths for left and right subtrees
+            remaining_depth = target_depth - current_depth
+            
+            # Randomly split the remaining depth
+            if remaining_depth > 1:
+                left_depth = current_depth + random.randint(1, remaining_depth)
+                right_depth = current_depth + random.randint(1, remaining_depth)
+            else:
+                left_depth = current_depth + 1
+                right_depth = current_depth + 1
+            
+            # Build left subtree
+            left_expr, used_vars = build_expr(current_depth + 1, left_depth, used_vars)
+            
+            # Build right subtree ensuring it's different
+            max_retries = 30
+            for attempt in range(max_retries):
+                right_expr, temp_vars = build_expr(current_depth + 1, right_depth, used_vars)
+                
+                # Check if expressions are identical
+                if left_expr == right_expr:
+                    continue
+                
+                # For simple variables/terms, also check if they share variables
+                left_vars = get_expr_vars(left_expr)
+                right_vars = get_expr_vars(right_expr)
+                
+                # If both are simple (no operators) and share variables, reject
+                left_is_simple = '+' not in left_expr and r'\oplus' not in left_expr and r'\overline' not in left_expr
+                right_is_simple = '+' not in right_expr and r'\oplus' not in right_expr and r'\overline' not in right_expr
+                
+                if left_is_simple and right_is_simple and (left_vars & right_vars):
+                    # They share variables - try again
+                    continue
+                
+                # Accept this combination
+                used_vars = temp_vars
+                break
+            else:
+                # Couldn't find a good right expression, just use what we have
+                used_vars = temp_vars
+            
+            # Format based on operator type
+            if op == 'AND':
+                # Juxtaposition - wrap in parens only if needed for precedence
+                def needs_parens(expr):
+                    return '+' in expr or r'\oplus' in expr
+                
+                left_with_parens = f"({left_expr})" if needs_parens(left_expr) else left_expr
+                right_with_parens = f"({right_expr})" if needs_parens(right_expr) else right_expr
+                
+                return f"{left_with_parens}{right_with_parens}", used_vars
+            elif op == 'OR':
+                return f"{left_expr} + {right_expr}", used_vars
+            else:  # XOR
+                return f"{left_expr} " + r"\oplus" + f" {right_expr}", used_vars
+        else:
+            # Unary operator (NOT) - doesn't increase depth
+            # Build subexpression at the SAME depth (NOT doesn't count toward depth)
+            sub_expr, used_vars = build_expr(current_depth, target_depth, used_vars)
+            
+            # Use overbar for NOT
+            return rf"\overline{{{sub_expr}}}", used_vars
+    
+    # Choose target depth randomly between min and max
+    target_depth = random.randint(min_depth, max_depth)
+    
+    # Build expression, ensuring all n variables are used
+    max_attempts = 100
+    for attempt in range(max_attempts):
+        expr, used_vars = build_expr(0, target_depth, set())
+        
+        # Check if we've used all n variables
+        if len(used_vars) == n:
+            # Wrap in parens only if the top-level contains OR or XOR
+            if '+' in expr or r'\oplus' in expr:
+                return f"({expr})"
+            return expr
+        
+        # If not enough variables used, try again
+    
+    # If we still haven't used all variables, force them in
+    expr, used_vars = build_expr(0, target_depth, set())
+    
+    # Add any missing variables with OR operations
+    missing = [v for v in all_variables if v not in used_vars]
+    for var in missing:
+        expr = f"{var} + {expr}"
+    
+    # Wrap if needed
+    if '+' in expr or r'\oplus' in expr:
+        return f"({expr})"
+    return expr
+
+
+def generate_random_boolean_expression(
+    n: int, 
+    min_depth: int, 
+    max_depth: int,
+    operators: list = None
+) -> str:
+    return generate_random_boolean_expression_impl(n, min_depth, max_depth, operators) + r'\sum g^2'
+
+def strip_enclosing_parens(expr: str) -> str:
+    expr = expr.strip()  # remove leading/trailing whitespace
+    if expr.startswith("(") and expr.endswith(")"):
+        return expr[1:-1]  # remove first and last character
+    return expr
+
+
+# Example usage and testing
+if __name__ == "__main__":
+    # Example 1: 3 inputs, depth 2-4
+    print("Example 1: n=3, depth=[2,4]")
+    for i in range(3):
+        expr = generate_random_boolean_expression(3, 2, 4)
+        print(f"  ${expr}$")
+    print()
+    
+    # Example 2: 5 inputs, depth 3-5
+    print("Example 2: n=5, depth=[3,5]")
+    for i in range(3):
+        expr = generate_random_boolean_expression(5, 3, 5)
+        print(f"  ${expr}$")
+    print()
+    
+    # Example 3: Only AND and OR operators
+    print("Example 3: n=4, depth=[2,3], only AND/OR")
+    for i in range(3):
+        expr = generate_random_boolean_expression(4, 2, 3, operators=['AND', 'OR'])
+        print(f"  ${expr}$")
+    print()
+    
+    # Example 4: Simple case
+    print("Example 4: n=2, depth=[1,2]")
+    for i in range(3):
+        expr = generate_random_boolean_expression(2, 1, 2)
+        print(f"  ${expr}$")
+    print()
+    
+    # Example 5: More than 4 inputs (tests subscript notation)
+    print("Example 5: n=6, depth=[2,3]")
+    for i in range(2):
+        expr = generate_random_boolean_expression(6, 2, 3)
+        print(f"  ${expr}$")
+
+
+    data = []
+    md = []
+
+    # Call generate_random() 500 times
+    i = 0
+    while i < 500:
+        expr = strip_enclosing_parens(generate_random_boolean_expression_impl(3, 3, 4))
+        if expr.count('overline') > 2:
+            continue
+        if expr.count('overline') < 1:
+            continue
+        if expr.count('oplus') > 1:
+            continue
+
+
+        item = {"index": i, "output": expr, "exam": False, "practice": False}
+        data.append(item)
+        md.append(f"{i}: $${expr}$$")
+        md.append('<br>')
+        i += 1
+
+    # Save to JSON file
+    with open("output.json", "w") as f:
+        json.dump(data, f, indent=2)
+
+    with open("output.md", "w") as f:
+        f.write('\n'.join(md))

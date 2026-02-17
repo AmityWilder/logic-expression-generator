@@ -1,0 +1,4 @@
+/target
+/latex/*
+!*.tex
+/Cargo.lock

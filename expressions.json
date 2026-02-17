@@ -1,0 +1,3003 @@
+[
+  {
+    "output": "(\\overline{y + z})(\\overline{x \\oplus z})",
+    "logic": "(!(y || z)) && (!(x ^ z))",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y + x}} + z \\oplus y",
+    "logic": "!(!(y || x)) || z ^ y",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{z + x} \\oplus y",
+    "logic": "!(z || x) ^ y",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{\\overline{x \\oplus z + y} + y + z}",
+    "logic": "!(!(x ^ z || y) || y || z)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{yxz}",
+    "logic": "!(y && x && z)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{zx}(y + x) \\oplus y + x",
+    "logic": "!(z && x) && (y || x) ^ y || x",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{z \\oplus x + y}}",
+    "logic": "!(!(z ^ x || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx} + zx",
+    "logic": "!(y && x) || z && x",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "yx \\oplus \\overline{z + x + y}",
+    "logic": "y && x ^ !(z || x || y)",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y(x + z)}}",
+    "logic": "!(!(y && (x || z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus z + y}",
+    "logic": "!(x ^ z || y)",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "x(\\overline{z \\oplus y})",
+    "logic": "x && (!(z ^ y))",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "x(\\overline{y + z}) + y + z",
+    "logic": "x && (!(y || z)) || y || z",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus z} + yz",
+    "logic": "!(x ^ z) || y && z",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "zy + \\overline{\\overline{xy}} + z",
+    "logic": "z && y || !(!(x && y)) || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y(z \\oplus x)} + z",
+    "logic": "!(y && (z ^ x)) || z",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "y + (\\overline{z \\oplus x})z",
+    "logic": "y || (!(z ^ x)) && z",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + \\overline{zy} + x}",
+    "logic": "!(x || !(z && y) || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zxy}",
+    "logic": "!(z && x && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + \\overline{zy} \\oplus z}",
+    "logic": "!(x || !(z && y) ^ z)",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(z \\oplus y)xz}",
+    "logic": "!((z ^ y) && x && z)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{\\overline{xy(zx \\oplus y + x)}}",
+    "logic": "!(!(x && y && (z && x ^ y || x)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xzy}",
+    "logic": "!(x && z && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(\\overline{z \\oplus y})(x + y) + y + z}",
+    "logic": "!((!(z ^ y)) && (x || y) || y || z)",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z(yxz + \\overline{xy})}",
+    "logic": "!(z && (y && x && z || !(x && y)))",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "x(y + z) + \\overline{x + z \\oplus x}",
+    "logic": "x && (y || z) || !(x || z ^ x)",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy} + \\overline{x \\oplus y}",
+    "logic": "!(z && y) || !(x ^ y)",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{zx}",
+    "logic": "y || !(z && x)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "z + \\overline{x \\oplus y}",
+    "logic": "z || !(x ^ y)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "x + yz + \\overline{\\overline{z + x}}",
+    "logic": "x || y && z || !(!(z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zxy(x \\oplus z)}",
+    "logic": "!(z && x && y && (x ^ z))",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{xy}(z \\oplus y) + z",
+    "logic": "!(x && y) && (z ^ y) || z",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xy + z}",
+    "logic": "!(x && y || z)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{(x + z)yz}",
+    "logic": "!((x || z) && y && z)",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + x \\oplus y + x}",
+    "logic": "!(z || x ^ y || x)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{(\\overline{z \\oplus y})x}",
+    "logic": "!((!(z ^ y)) && x)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "y(\\overline{x + z}) + \\overline{y \\oplus z}",
+    "logic": "y && (!(x || z)) || !(y ^ z)",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + z + y}",
+    "logic": "!(x || z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x + z(\\overline{y \\oplus z})",
+    "logic": "x || z && (!(y ^ z))",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x + z)yz}",
+    "logic": "!((x || z) && y && z)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{z + xy} \\oplus x + y + z + y",
+    "logic": "!(z || x && y) ^ x || y || z || y",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "(\\overline{x \\oplus z})y",
+    "logic": "(!(x ^ z)) && y",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "z(\\overline{x + y + x}) \\oplus x",
+    "logic": "z && (!(x || y || x)) ^ x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + x \\oplus y}",
+    "logic": "!(z || x ^ y)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "x(\\overline{z + y})",
+    "logic": "x && (!(z || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + yz}",
+    "logic": "!(x || y && z)",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z \\oplus y} + x + y",
+    "logic": "!(z ^ y) || x || y",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{zx}(\\overline{y + z + y})",
+    "logic": "!(z && x) && (!(y || z || y))",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "z + yx + \\overline{z + y}",
+    "logic": "z || y && x || !(z || y)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "z \\oplus y + \\overline{xy}",
+    "logic": "z ^ y || !(x && y)",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{xzy}",
+    "logic": "!(x && z && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x\\overline{zy}}",
+    "logic": "!(x!(z && y))",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "(y + z)(\\overline{x + z}) \\oplus z",
+    "logic": "(y || z) && (!(x || z)) ^ z",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{z + y})x \\oplus yz",
+    "logic": "(!(z || y)) && x ^ y && z",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{yzx}}",
+    "logic": "!(!(y && z && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z + x \\oplus \\overline{yx}",
+    "logic": "z || x ^ !(y && x)",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + x + z(yx + z + y)}",
+    "logic": "!(y || x || z && (y && x || z || y))",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz} + y + z",
+    "logic": "!(x && z) || y || z",
+    "exam": false,
+    "practice": true
+  },
+  {
+    "output": "\\overline{y \\oplus z} + \\overline{x + z} + y",
+    "logic": "!(y ^ z) || !(x || z) || y",
+    "exam": true,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{z + y \\oplus x}}",
+    "logic": "!(!(z || y ^ x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{z \\oplus y} + x}",
+    "logic": "!(!(z ^ y) || x)",
+    "exam": false,
+    "practice": false,
+    "startHere": "START_HERE"
+  },
+  {
+    "output": "\\overline{x + z + \\overline{yx}}",
+    "logic": "!(x || z || !(y && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(\\overline{yz} \\oplus z + y)",
+    "logic": "x && (!(y && z) ^ z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{\\overline{z \\oplus y + x}})z",
+    "logic": "(!(!(z ^ y || x))) && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z \\oplus x + y + \\overline{\\overline{yz}}",
+    "logic": "z ^ x || y || !(!(y && z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z + x + \\overline{yx}",
+    "logic": "z || x || !(y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{((z \\oplus x)y)y}",
+    "logic": "!(((z ^ x) && y) && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + x})(z \\oplus x)",
+    "logic": "(!(y || x)) && (z ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(z(\\overline{\\overline{y + x}}))x",
+    "logic": "(z && (!(!(y || x)))) && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z \\oplus yx}",
+    "logic": "!(z ^ y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y((\\overline{\\overline{z + x}})(y \\oplus z))",
+    "logic": "y && ((!(!(z || x))) && (y ^ z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + x \\oplus y}",
+    "logic": "!(z || x ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y \\oplus z(x + z)}",
+    "logic": "!(y ^ z && (x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx + z + x}",
+    "logic": "!(y && x || z || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z \\oplus \\overline{xy}x}",
+    "logic": "!(z ^ !(x && y) && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y \\oplus \\overline{z + x} + z + x",
+    "logic": "y ^ !(z || x) || z || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(z \\oplus x)(\\overline{yx(x + y)})",
+    "logic": "(z ^ x) && (!(y && x && (x || y)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y \\oplus x + z + x}",
+    "logic": "!(y ^ x || z || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{z(\\overline{x \\oplus z})}",
+    "logic": "y || !(z && (!(x ^ z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz(y + z)} + y + x",
+    "logic": "!(x && z && (y || z)) || y || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z \\oplus \\overline{\\overline{yx}x}",
+    "logic": "z ^ !(!(y && x) && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zy} + xy + x}",
+    "logic": "!(!(z && y) || x && y || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x(\\overline{zy} + x)}",
+    "logic": "!(x && (!(z && y) || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{z \\oplus x + y}}",
+    "logic": "!(!(z ^ x || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + (x + y)zy}",
+    "logic": "!(z || (x || y) && z && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zx \\oplus y + z}",
+    "logic": "!(z && x ^ y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{z \\oplus x}",
+    "logic": "y || !(z ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xy}(z + x \\oplus y)",
+    "logic": "!(x && y) && (z || x ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "xy + \\overline{zy + x \\oplus z}",
+    "logic": "x && y || !(z && y || x ^ z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(y(z + x))(\\overline{\\overline{z(y + z)}})",
+    "logic": "(y && (z || x)) && (!(!(z && (y || z))))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{\\overline{y \\oplus x + z}})z",
+    "logic": "(!(!(y ^ x || z))) && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(y \\oplus x)z}",
+    "logic": "!((y ^ x) && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x + \\overline{zy}",
+    "logic": "x || !(z && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + x \\oplus \\overline{zx}",
+    "logic": "y || x ^ !(z && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x(z \\oplus y + x)}",
+    "logic": "!(x && (z ^ y || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{((x + y)z)(\\overline{xy(x + y)}) \\oplus y}",
+    "logic": "!(((x || y) && z) && (!(x && y && (x || y))) ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yz + x} + y",
+    "logic": "!(y && z || x) || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(x \\oplus y)(\\overline{zy + z + y + z})",
+    "logic": "(x ^ y) && (!(z && y || z || y || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(\\overline{xz} \\oplus y)z}",
+    "logic": "!((!(x && z) ^ y) && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus yz}",
+    "logic": "!(x ^ y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{x \\oplus y})z",
+    "logic": "(!(x ^ y)) && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(\\overline{y \\oplus z + x})",
+    "logic": "x && (!(y ^ z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y(z + x)}",
+    "logic": "!(y && (z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + x + z}",
+    "logic": "!(y || x || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x \\oplus \\overline{yz}",
+    "logic": "x ^ !(y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "((\\overline{x + z})(y + z))y",
+    "logic": "((!(x || z)) && (y || z)) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + x} + z)x",
+    "logic": "(!(y || x) || z) && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + x + zx}",
+    "logic": "!(y || x || z && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx \\oplus z}",
+    "logic": "!(y && x ^ z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y((\\overline{x + z})z)",
+    "logic": "y && ((!(x || z)) && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "((\\overline{z + x})((y + x)\\overline{yx}))y",
+    "logic": "((!(z || x)) && ((y || x)!(y && x))) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + x})z + x",
+    "logic": "(!(y || x)) && z || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + z})(x \\oplus y)",
+    "logic": "(!(y || z)) && (x ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z + \\overline{y \\oplus x}",
+    "logic": "z || !(y ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx}(z + y)",
+    "logic": "!(y && x) && (z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z + \\overline{yx}",
+    "logic": "z || !(y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x + z + \\overline{y + x}",
+    "logic": "x || z || !(y || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zy}} + x",
+    "logic": "!(!(z && y)) || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{x + y \\oplus z}} + zy",
+    "logic": "!(!(x || y ^ z)) || z && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz \\oplus y}",
+    "logic": "!(x && z ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y\\overline{xz} + z \\oplus x})z",
+    "logic": "(!(y!(x && z) || z ^ x)) && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "((z + y)(x \\oplus z))(\\overline{x + z})",
+    "logic": "((z || y) && (x ^ z)) && (!(x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(\\overline{(y + z)xy})(z \\oplus x)}",
+    "logic": "!((!((y || z) && x && y)) && (z ^ x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(x \\oplus z)(\\overline{y + x})",
+    "logic": "(x ^ z) && (!(y || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz(\\overline{y + z} \\oplus yz)}",
+    "logic": "!(x && z && (!(y || z) ^ y && z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(z + y + x)y \\oplus \\overline{x + y}",
+    "logic": "(z || y || x) && y ^ !(x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{x + z \\oplus y + x})zx",
+    "logic": "(!(x || z ^ y || x)) && z && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "xyz \\oplus \\overline{z + y}",
+    "logic": "x && y && z ^ !(z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x + z + y)(x \\oplus z)}",
+    "logic": "!((x || z || y) && (x ^ z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yz(x \\oplus \\overline{zx})}",
+    "logic": "!(y && z && (x ^ !(z && x)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + yx}",
+    "logic": "!(z || y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(y + x)\\overline{zy} + x + y}",
+    "logic": "!((y || x)!(z && y) || x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y \\oplus \\overline{xz}}",
+    "logic": "!(y ^ !(x && z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + z})(x \\oplus z)",
+    "logic": "(!(y || z)) && (x ^ z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus y + zy} + y",
+    "logic": "!(x ^ y || z && y) || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y\\overline{zx} + \\overline{x + z}",
+    "logic": "y!(z && x) || !(x || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + y} \\oplus \\overline{x + z}",
+    "logic": "!(z || y) ^ !(x || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus y + z}",
+    "logic": "!(x ^ y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + \\overline{x + y}}",
+    "logic": "!(z || !(x || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y \\oplus x} + \\overline{z + y} + z + y",
+    "logic": "!(y ^ x) || !(z || y) || z || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + (z \\oplus x)\\overline{\\overline{zx}}",
+    "logic": "y || (z ^ x)!(!(z && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x + y)zy} + y + z",
+    "logic": "!((x || y) && z && y) || y || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(yz(x + y \\oplus x))(\\overline{z + x})",
+    "logic": "(y && z && (x || y ^ x)) && (!(z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{\\overline{y \\oplus x + z}})z",
+    "logic": "(!(!(y ^ x || z))) && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy} \\oplus x + z",
+    "logic": "!(z && y) ^ x || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus z} + y + z",
+    "logic": "!(x ^ z) || y || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zy}}(x \\oplus y + x)",
+    "logic": "!(!(z && y)) && (x ^ y || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + x + \\overline{z \\oplus x}",
+    "logic": "y || x || !(z ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y\\overline{xz}",
+    "logic": "y!(x && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y(\\overline{(x \\oplus z)(x + y)})}",
+    "logic": "!(y && (!((x ^ z) && (x || y))))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y(z + xz \\oplus \\overline{z + y})",
+    "logic": "y && (z || x && z ^ !(z || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y(xz \\oplus \\overline{yx})",
+    "logic": "y && (x && z ^ !(y && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z \\oplus \\overline{\\overline{yx}}",
+    "logic": "z ^ !(!(y && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus y} + (z + x)(\\overline{z + x})",
+    "logic": "!(x ^ y) || (z || x) && (!(z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y(\\overline{x \\oplus z + y})",
+    "logic": "y && (!(x ^ z || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{(\\overline{yx \\oplus z})z})y",
+    "logic": "(!((!(y && x ^ z)) && z)) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy} \\oplus xz",
+    "logic": "!(z && y) ^ x && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + x} + z + x",
+    "logic": "!(y || x) || z || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(y + x)(z + \\overline{\\overline{x \\oplus z}})",
+    "logic": "(y || x) && (z || !(!(x ^ z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy + x} + (y + x)z",
+    "logic": "!(z && y || x) || (y || x) && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + xz + (\\overline{z \\oplus x})xy",
+    "logic": "y || x && z || (!(z ^ x)) && x && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + y} + z + z \\oplus y",
+    "logic": "!(x || y) || z || z ^ y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{yz(x + y)} \\oplus zy}",
+    "logic": "!(!(y && z && (x || y)) ^ z && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(y(\\overline{z + x}))x",
+    "logic": "(y && (!(z || x))) && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(x + y)\\overline{zy}",
+    "logic": "(x || y)!(z && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx(z + x)}",
+    "logic": "!(y && x && (z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y\\overline{zx}",
+    "logic": "y!(z && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(\\overline{y \\oplus \\overline{z + y}})",
+    "logic": "x && (!(y ^ !(z || y)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z \\oplus y} + xy",
+    "logic": "!(z ^ y) || x && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yz \\oplus x + y}",
+    "logic": "!(y && z ^ x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x + y + z + \\overline{yz}",
+    "logic": "x || y || z || !(y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{x + z})(y + x)",
+    "logic": "(!(x || z)) && (y || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "yz(\\overline{x + y})",
+    "logic": "y && z && (!(x || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zy} \\oplus x + y}",
+    "logic": "!(!(z && y) ^ x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "yz(x + \\overline{z + yx})",
+    "logic": "y && z && (x || !(z || y && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(xy + \\overline{z + y})(y \\oplus z)}",
+    "logic": "!((x && y || !(z || y)) && (y ^ z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z \\oplus x + y} + y",
+    "logic": "!(z ^ x || y) || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y \\oplus x + z + y}",
+    "logic": "!(y ^ x || z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y + z + x}}",
+    "logic": "!(!(y || z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{xyz}}",
+    "logic": "!(!(x && y && z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yz} + x + y",
+    "logic": "!(y && z) || x || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xy} + z",
+    "logic": "!(x && y) || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy + x + y} + y + x",
+    "logic": "!(z && y || x || y) || y || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x(\\overline{y + z}) + y}",
+    "logic": "!(x && (!(y || z)) || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "zx \\oplus y\\overline{yx}",
+    "logic": "z && x ^ y!(y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(z + y)(\\overline{x \\oplus y})}",
+    "logic": "!((z || y) && (!(x ^ y)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(xy \\oplus z)z}",
+    "logic": "!((x && y ^ z) && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z(y + x + zy)}",
+    "logic": "!(z && (y || x || z && y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z \\oplus \\overline{yx}",
+    "logic": "z ^ !(y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + z \\oplus y}",
+    "logic": "!(x || z ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + \\overline{yx}}",
+    "logic": "!(z || !(y && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz} + y + x \\oplus y",
+    "logic": "!(x && z) || y || x ^ y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + (x + y)yz}",
+    "logic": "!(z || (x || y) && y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z \\oplus y(\\overline{x + z})",
+    "logic": "z ^ y && (!(x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx} \\oplus zy + z",
+    "logic": "!(y && x) ^ z && y || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(z \\oplus x + y + \\overline{yx})z",
+    "logic": "(z ^ x || y || !(y && x)) && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z \\oplus y + \\overline{x + z}",
+    "logic": "z ^ y || !(x || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y \\oplus x}} + z",
+    "logic": "!(!(y ^ x)) || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{x(y \\oplus z)}}",
+    "logic": "!(!(x && (y ^ z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z + \\overline{y(\\overline{xz(x \\oplus y)})}",
+    "logic": "z || !(y && (!(x && z && (x ^ y))))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zyx}",
+    "logic": "!(z && y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + y \\oplus x}",
+    "logic": "!(z || y ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx \\oplus \\overline{zy} + y + x}",
+    "logic": "!(y && x ^ !(z && y) || y || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{z + x}",
+    "logic": "y || !(z || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{x \\oplus z}} + y",
+    "logic": "!(!(x ^ z)) || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + z})x + x + y",
+    "logic": "(!(y || z)) && x || x || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xyz}",
+    "logic": "!(x && y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zy}}(x + y)",
+    "logic": "!(!(z && y)) && (x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yzx}z",
+    "logic": "!(y && z && x) && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zy}}(x \\oplus y)",
+    "logic": "!(!(z && y)) && (x ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx} + z",
+    "logic": "!(y && x) || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + y} + x",
+    "logic": "!(z || y) || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "zx + \\overline{\\overline{yx}}",
+    "logic": "z && x || !(!(y && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zx(y \\oplus x)}}",
+    "logic": "!(!(z && x && (y ^ x)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{yz} + x)(y + x \\oplus z)",
+    "logic": "(!(y && z) || x) && (y || x ^ z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{(z + y)(x \\oplus z) + x}}",
+    "logic": "!(!((z || y) && (x ^ z) || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xy + z}",
+    "logic": "!(x && y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "zxy \\oplus \\overline{\\overline{yx}}",
+    "logic": "z && x && y ^ !(!(y && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(z + y + \\overline{y + z})",
+    "logic": "x && (z || y || !(y || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy} + \\overline{xy}x",
+    "logic": "!(z && y) || !(x && y) && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + (z \\oplus x)z}",
+    "logic": "!(y || (z ^ x) && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zy + x + yz}}",
+    "logic": "!(!(z && y || x || y && z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x + \\overline{y + z}",
+    "logic": "x || !(y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + y \\oplus x} + yz",
+    "logic": "!(z || y ^ x) || y && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{x + y + z}}",
+    "logic": "!(!(x || y || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(\\overline{z + y + x})y}",
+    "logic": "!((!(z || y || x)) && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz}y",
+    "logic": "!(x && z) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "((\\overline{x + y})zx)(x + y)",
+    "logic": "((!(x || y)) && z && x) && (x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(z(\\overline{xy} + x))zy",
+    "logic": "(z && (!(x && y) || x)) && z && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y \\oplus \\overline{\\overline{x + z}} + y + x",
+    "logic": "y ^ !(!(x || z)) || y || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zx}y}",
+    "logic": "!(!(z && x) && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z \\oplus x + \\overline{yz}",
+    "logic": "z ^ x || !(y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{zx} \\oplus x + \\overline{yz}",
+    "logic": "y || !(z && x) ^ x || !(y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(x + y + z)(\\overline{xz + x \\oplus y})",
+    "logic": "(x || y || z) && (!(x && z || x ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{(z + y)(\\overline{x \\oplus z})})(y + x)",
+    "logic": "(!((z || y) && (!(x ^ z)))) && (y || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus yz} + z",
+    "logic": "!(x ^ y && z) || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy} \\oplus x",
+    "logic": "!(z && y) ^ x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(\\overline{z \\oplus y})",
+    "logic": "x && (!(z ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + xz}",
+    "logic": "!(y || x && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y \\oplus x + z(y + z)}}",
+    "logic": "!(!(y ^ x || z && (y || z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zx \\oplus y}} + y + x",
+    "logic": "!(!(z && x ^ y)) || y || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + z})x",
+    "logic": "(!(y || z)) && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx}z \\oplus x + y",
+    "logic": "!(y && x) && z ^ x || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y(\\overline{zx \\oplus y})",
+    "logic": "y && (!(z && x ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(\\overline{z + x} + y)(yz \\oplus x)}",
+    "logic": "!((!(z || x) || y) && (y && z ^ x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x + z)(\\overline{(y + z)z})}",
+    "logic": "!((x || z) && (!((y || z) && z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz} + y + z",
+    "logic": "!(x && z) || y || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z(y + x + \\overline{zy} \\oplus y)",
+    "logic": "z && (y || x || !(z && y) ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z((\\overline{y + x})(y \\oplus x))",
+    "logic": "z && ((!(y || x)) && (y ^ x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x \\oplus z + y(\\overline{y + x}) + x",
+    "logic": "x ^ z || y && (!(y || x)) || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{x + y + z + x})y",
+    "logic": "(!(x || y || z || x)) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus z} + \\overline{y + z + z}",
+    "logic": "!(x ^ z) || !(y || z || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{x + zy}}",
+    "logic": "!(!(x || z && y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "xy\\overline{\\overline{zy}}",
+    "logic": "x && y!(!(z && y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + x + z \\oplus x + \\overline{(y + x)z} + x",
+    "logic": "y || x || z ^ x || !((y || x) && z) || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zx}y",
+    "logic": "!(z && x) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy(x + z)}",
+    "logic": "!(z && y && (x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{\\overline{xz}}",
+    "logic": "y || !(!(x && z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y \\oplus z + x}}",
+    "logic": "!(!(y ^ z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + x + z(\\overline{y + x})",
+    "logic": "y || x || z && (!(y || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy} + x(\\overline{z \\oplus y})",
+    "logic": "!(z && y) || x && (!(z ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{z \\oplus x})y",
+    "logic": "(!(z ^ x)) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{z + y} + x)(x + y \\oplus x + z + x)",
+    "logic": "(!(z || y) || x) && (x || y ^ x || z || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{xy}} + z \\oplus x",
+    "logic": "!(!(x && y)) || z ^ x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(\\overline{z + y} + x)x}",
+    "logic": "!((!(z || y) || x) && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + z + \\overline{xz} + y} \\oplus x + z",
+    "logic": "!(y || z || !(x && z) || y) ^ x || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy(x + y)}",
+    "logic": "!(z && y && (x || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + \\overline{xy} + x}",
+    "logic": "!(z || !(x && y) || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z \\oplus y + xz}",
+    "logic": "!(z ^ y || x && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "zx\\overline{yz}",
+    "logic": "z && x!(y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + x + y + z}",
+    "logic": "!(z || x || y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(z \\oplus x)\\overline{yz} + x + z}",
+    "logic": "!((z ^ x)!(y && z) || x || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + x + \\overline{z \\oplus y} + z + y",
+    "logic": "y || x || !(z ^ y) || z || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y(x + z)}",
+    "logic": "!(y && (x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy}(x + y)",
+    "logic": "!(z && y) && (x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x \\oplus \\overline{yzx}",
+    "logic": "x ^ !(y && z && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y(\\overline{(x + z)xy} + yx)",
+    "logic": "y && (!((x || z) && x && y) || y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + y} \\oplus x + y",
+    "logic": "!(z || y) ^ x || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zx \\oplus y}",
+    "logic": "!(z && x ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y + z + x} + yz}",
+    "logic": "!(!(y || z || x) || y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(y \\oplus z)(\\overline{x + y})}",
+    "logic": "!((y ^ z) && (!(x || y)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + z})\\overline{xy}",
+    "logic": "(!(y || z))!(x && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + x} + y + x",
+    "logic": "!(z || x) || y || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + x \\oplus z}",
+    "logic": "!(y || x ^ z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y(zx(x \\oplus z))})(\\overline{z + y})",
+    "logic": "(!(y && (z && x && (x ^ z)))) && (!(z || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{z + \\overline{yx}})x",
+    "logic": "(!(z || !(y && x))) && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy(x + z)}",
+    "logic": "!(z && y && (x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(zx \\oplus y + z)(\\overline{x + y})",
+    "logic": "(z && x ^ y || z) && (!(x || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x \\oplus y)z}",
+    "logic": "!((x ^ y) && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yz}x",
+    "logic": "!(y && z) && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{zx} + x",
+    "logic": "y || !(z && x) || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{x \\oplus z}",
+    "logic": "y || !(x ^ z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy(\\overline{x + z})}",
+    "logic": "!(z && y && (!(x || z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{z \\oplus x}",
+    "logic": "y || !(z ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{(z + x)(y \\oplus x)}}",
+    "logic": "!(!((z || x) && (y ^ x)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y(\\overline{(\\overline{x \\oplus z})yz})",
+    "logic": "y && (!((!(x ^ z)) && y && z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x(z(y + z))}",
+    "logic": "!(x && (z && (y || z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y \\oplus xz}}",
+    "logic": "!(!(y ^ x && z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zx(y + x)}",
+    "logic": "!(z && x && (y || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y(z + x)})zx",
+    "logic": "(!(y && (z || x))) && z && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y \\oplus z + x}}",
+    "logic": "!(!(y ^ z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + \\overline{z + y}}",
+    "logic": "!(x || !(z || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + z + \\overline{y \\oplus x}}",
+    "logic": "!(x || z || !(y ^ x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus y} + z + y",
+    "logic": "!(x ^ y) || z || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yz}(x + z)",
+    "logic": "!(y && z) && (x || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{x + z}",
+    "logic": "y || !(x || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{yx} \\oplus z} + y(y + z)",
+    "logic": "!(!(y && x) ^ z) || y && (y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + x \\oplus y}",
+    "logic": "!(z || x ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y \\oplus \\overline{xz}",
+    "logic": "y ^ !(x && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{yx} \\oplus z + x + x + y + z}",
+    "logic": "!(!(y && x) ^ z || x || x || y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy + x \\oplus z}",
+    "logic": "!(z && y || x ^ z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(\\overline{\\overline{y + z}})",
+    "logic": "x && (!(!(y || z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy} \\oplus \\overline{xz + y}",
+    "logic": "!(z && y) ^ !(x && z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z + \\overline{x \\oplus y} + y",
+    "logic": "z || !(x ^ y) || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz}(yz \\oplus x)",
+    "logic": "!(x && z) && (y && z ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y(z + x) + \\overline{x + x + y}",
+    "logic": "y && (z || x) || !(x || x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus y + z}",
+    "logic": "!(x ^ y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx(z + x)}",
+    "logic": "!(y && x && (z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "xy + \\overline{z + y}",
+    "logic": "x && y || !(z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zxy}",
+    "logic": "!(z && x && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + xy + x \\oplus y}",
+    "logic": "!(z || x && y || x ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z \\oplus x + yx}",
+    "logic": "!(z ^ x || y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(z + y + x)\\overline{zx} \\oplus z + y}",
+    "logic": "!((z || y || x)!(z && x) ^ z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(z \\oplus x)yz}",
+    "logic": "!((z ^ x) && y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(\\overline{y + z})(x \\oplus y) + y + x}",
+    "logic": "!((!(y || z)) && (x ^ y) || y || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "yz \\oplus \\overline{xy} + z + x",
+    "logic": "y && z ^ !(x && y) || z || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "zx(y + z) + \\overline{x + z}",
+    "logic": "z && x && (y || z) || !(x || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x \\oplus \\overline{zy} + x",
+    "logic": "x ^ !(z && y) || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + z + x + y + z}",
+    "logic": "!(y || z || x || y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x \\oplus z + \\overline{yz}",
+    "logic": "x ^ z || !(y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y \\oplus z} + xy + x + z",
+    "logic": "!(y ^ z) || x && y || x || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yx}((z \\oplus x)(\\overline{y + x}))",
+    "logic": "!(y && x) && ((z ^ x) && (!(y || x)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x + yz)(xy + z)}",
+    "logic": "!((x || y && z) && (x && y || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x \\oplus z)y + y + x}",
+    "logic": "!((x ^ z) && y || y || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "yz(\\overline{x \\oplus x + z})",
+    "logic": "y && z && (!(x ^ x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(z + y)(x \\oplus x + z)}",
+    "logic": "!((z || y) && (x ^ x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{z \\oplus xy}}",
+    "logic": "!(!(z ^ x && y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{z + y}} + x \\oplus z",
+    "logic": "!(!(z || y)) || x ^ z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z\\overline{yx}y",
+    "logic": "z!(y && x) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{yxz}y}",
+    "logic": "!(!(y && x && z) && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{z \\oplus x})y",
+    "logic": "(!(z ^ x)) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{\\overline{z + x}}",
+    "logic": "y || !(!(z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{xz}}yz",
+    "logic": "!(!(x && z)) && y && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z(x + \\overline{y + z})",
+    "logic": "z && (x || !(y || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y + x + zy} + x + z}",
+    "logic": "!(!(y || x || z && y) || x || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zy}}x + y \\oplus zx",
+    "logic": "!(!(z && y)) && x || y ^ z && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x + \\overline{y + z \\oplus y} + zy",
+    "logic": "x || !(y || z ^ y) || z && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(x \\oplus z)(\\overline{\\overline{y + x + x}})",
+    "logic": "(x ^ z) && (!(!(y || x || x)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{x \\oplus yz}}",
+    "logic": "!(!(x ^ y && z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zy} + xz}",
+    "logic": "!(!(z && y) || x && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus \\overline{zy}}",
+    "logic": "!(x ^ !(z && y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(\\overline{y \\oplus z + y})",
+    "logic": "x && (!(y ^ z || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + \\overline{x \\oplus z}} + x",
+    "logic": "!(y || !(x ^ z)) || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(z + y)x}",
+    "logic": "!((z || y) && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{x + z}} + y",
+    "logic": "!(!(x || z)) || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x\\overline{zy}(x \\oplus y + zx)",
+    "logic": "x!(z && y) && (x ^ y || z && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "yxz(\\overline{y \\oplus x})",
+    "logic": "y && x && z && (!(y ^ x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus y} + zy",
+    "logic": "!(x ^ y) || z && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(\\overline{x + y})z}",
+    "logic": "!((!(x || y)) && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(z + x)(\\overline{\\overline{y + z}}) + y \\oplus z",
+    "logic": "(z || x) && (!(!(y || z))) || y ^ z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x \\oplus z)(y + x + z + x)}",
+    "logic": "!((x ^ z) && (y || x || z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xy} \\oplus z + y(z + x)",
+    "logic": "!(x && y) ^ z || y && (z || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z + \\overline{\\overline{x \\oplus y}}",
+    "logic": "z || !(!(x ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y(z + x)}} + z",
+    "logic": "!(!(y && (z || x))) || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(z + y) + \\overline{x + y + z \\oplus y}",
+    "logic": "x && (z || y) || !(x || y || z ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{z(x \\oplus yz)}}",
+    "logic": "!(!(z && (x ^ y && z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y\\overline{zx}",
+    "logic": "y!(z && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{yx}} + z \\oplus y",
+    "logic": "!(!(y && x)) || z ^ y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zx} + y",
+    "logic": "!(z && x) || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(\\overline{zx(y \\oplus x)})y}",
+    "logic": "!((!(z && x && (y ^ x))) && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z + x \\oplus \\overline{yz}",
+    "logic": "z || x ^ !(y && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + y} \\oplus z + x + y",
+    "logic": "!(x || y) ^ z || x || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x + z)(y(\\overline{x \\oplus y}))}",
+    "logic": "!((x || z) && (y && (!(x ^ y))))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y \\oplus z + x + z}}",
+    "logic": "!(!(y ^ z || x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z + x + (\\overline{y \\oplus x})y",
+    "logic": "z || x || (!(y ^ x)) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x + \\overline{y \\oplus z} + z",
+    "logic": "x || !(y ^ z) || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x + \\overline{yz} + x \\oplus z + x",
+    "logic": "x || !(y && z) || x ^ z || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "yzx(\\overline{x + y} + z)",
+    "logic": "y && z && x && (!(x || y) || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + x + \\overline{zx}",
+    "logic": "y || x || !(z && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus z + y}",
+    "logic": "!(x ^ z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + x \\oplus y + z}",
+    "logic": "!(z || x ^ y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{(x(y \\oplus z))x}}",
+    "logic": "!(!((x && (y ^ z)) && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + z})(xz \\oplus y)",
+    "logic": "(!(y || z)) && (x && z ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(y(z \\oplus x))\\overline{zx}",
+    "logic": "(y && (z ^ x))!(z && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y \\oplus z} + x}",
+    "logic": "!(!(y ^ z) || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y\\overline{zx}} + x",
+    "logic": "!(y!(z && x)) || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{yz} + x)(x(x + z))",
+    "logic": "(!(y && z) || x) && (x && (x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + z + x}",
+    "logic": "!(y || z || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "zy(\\overline{xz \\oplus y})",
+    "logic": "z && y && (!(x && z ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x + \\overline{z + y + x + z}",
+    "logic": "x || !(z || y || x || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(y + z)x}",
+    "logic": "!((y || z) && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(z + xy)(\\overline{z + x})",
+    "logic": "(z || x && y) && (!(z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z(\\overline{x \\oplus y})",
+    "logic": "z && (!(x ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{\\overline{y + z}})(x + z) \\oplus y",
+    "logic": "(!(!(y || z))) && (x || z) ^ y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + x + \\overline{z \\oplus x}",
+    "logic": "y || x || !(z ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + \\overline{x + z}}",
+    "logic": "!(y || !(x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x \\oplus \\overline{y + z}",
+    "logic": "x ^ !(y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + z + y \\oplus x}",
+    "logic": "!(x || z || y ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{x + zy} \\oplus y}",
+    "logic": "!(!(x || z && y) ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz}(yz + \\overline{zxy})",
+    "logic": "!(x && z) && (y && z || !(z && x && y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + yx}",
+    "logic": "!(z || y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y \\oplus x} + z)z",
+    "logic": "(!(y ^ x) || z) && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x \\oplus z)yz + y}",
+    "logic": "!((x ^ z) && y && z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + y \\oplus x}",
+    "logic": "!(z || y ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + z} \\oplus y",
+    "logic": "!(x || z) ^ y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(y \\oplus x)(z + x)}",
+    "logic": "!((y ^ x) && (z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + z + x})yzx",
+    "logic": "(!(y || z || x)) && y && z && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{z \\oplus y})x",
+    "logic": "(!(z ^ y)) && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x + z + \\overline{yx}",
+    "logic": "x || z || !(y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(\\overline{y + z})",
+    "logic": "x && (!(y || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{x \\oplus zy}}",
+    "logic": "!(!(x ^ z && y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + \\overline{z \\oplus y}}",
+    "logic": "!(x || !(z ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y + z + x} + zy}",
+    "logic": "!(!(y || z || x) || z && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + x + \\overline{y \\oplus z}}",
+    "logic": "!(z || x || !(y ^ z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + x} + yx",
+    "logic": "!(z || x) || y && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(y + z \\oplus x)z}",
+    "logic": "!((y || z ^ x) && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{x + z + y})z",
+    "logic": "(!(x || z || y)) && z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(y \\oplus x + \\overline{(z + x)x})yx}",
+    "logic": "!((y ^ x || !((z || x) && x)) && y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "zy + \\overline{xy}y",
+    "logic": "z && y || !(x && y) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(\\overline{\\overline{y + z}}) \\oplus x",
+    "logic": "x && (!(!(y || z))) ^ x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y(x(z + x)) + \\overline{\\overline{xz} + y \\oplus xz}",
+    "logic": "y && (x && (z || x)) || !(!(x && z) || y ^ x && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z + x \\oplus y}",
+    "logic": "!(z || x ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + \\overline{zyx}}",
+    "logic": "!(x || !(z && y && x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z \\oplus \\overline{y + x + y}",
+    "logic": "z ^ !(y || x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "xz((\\overline{y + z})(x \\oplus z))",
+    "logic": "x && z && ((!(y || z)) && (x ^ z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "zx(\\overline{y \\oplus \\overline{x + z}})",
+    "logic": "z && x && (!(y ^ !(x || z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x \\oplus \\overline{z + y}",
+    "logic": "x ^ !(z || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(z + x)y} \\oplus y",
+    "logic": "!((z || x) && y) ^ y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{\\overline{yx + z + x}})(y \\oplus z)",
+    "logic": "(!(!(y && x || z || x))) && (y ^ z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xy}z + zx",
+    "logic": "!(x && y) && z || z && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(xy + z)(x + zy)}",
+    "logic": "!((x && y || z) && (x || z && y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{x + y})zy + z \\oplus x",
+    "logic": "(!(x || y)) && z && y || z ^ x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(x + y)(\\overline{\\overline{(z \\oplus y)zx}})",
+    "logic": "(x || y) && (!(!((z ^ y) && z && x)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xy}(\\overline{zy + z \\oplus y})",
+    "logic": "!(x && y) && (!(z && y || z ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zy + x + x + z \\oplus y}",
+    "logic": "!(z && y || x || x || z ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(y + z)\\overline{xy}} + (y \\oplus x)(x + y)",
+    "logic": "!((y || z)!(x && y)) || (y ^ x) && (x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + z \\oplus \\overline{xz} + y",
+    "logic": "y || z ^ !(x && z) || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yz \\oplus x}",
+    "logic": "!(y && z ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{z + xy}",
+    "logic": "y || !(z || x && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + y} \\oplus \\overline{zx}",
+    "logic": "!(x || y) ^ !(z && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y((z + x)(\\overline{y + z}))}",
+    "logic": "!(y && ((z || x) && (!(y || z))))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + z + x})(y + z)",
+    "logic": "(!(y || z || x)) && (y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + z})(x + y \\oplus y)",
+    "logic": "(!(y || z)) && (x || y ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "zy(\\overline{x \\oplus y})",
+    "logic": "z && y && (!(x ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x(y + z)}",
+    "logic": "!(x && (y || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{z \\oplus x})y",
+    "logic": "(!(z ^ x)) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{yx}z}",
+    "logic": "!(!(y && x) && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y(\\overline{x + z \\oplus y})}",
+    "logic": "!(y && (!(x || z ^ y)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "zy + x \\oplus \\overline{y + x}",
+    "logic": "z && y || x ^ !(y || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{zx} \\oplus y",
+    "logic": "!(z && x) ^ y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(z \\oplus x)(\\overline{\\overline{y + z}})",
+    "logic": "(z ^ x) && (!(!(y || z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{zy}}x",
+    "logic": "!(!(z && y)) && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xzy}",
+    "logic": "!(x && z && y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z(x(\\overline{y + x} \\oplus y))",
+    "logic": "z && (x && (!(y || x) ^ y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{\\overline{x \\oplus z}})y",
+    "logic": "(!(!(x ^ z))) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x \\oplus \\overline{z + y} + x",
+    "logic": "x ^ !(z || y) || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z \\oplus x + y}",
+    "logic": "!(z ^ x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y((z + x)\\overline{zy})",
+    "logic": "y && ((z || x)!(z && y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{(x + y)(\\overline{zy(y + z)})}",
+    "logic": "!((x || y) && (!(z && y && (y || z))))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz} + y + z",
+    "logic": "!(x && z) || y || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "xy(z + \\overline{x \\oplus z})",
+    "logic": "x && y && (z || !(x ^ z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{z \\oplus x}",
+    "logic": "y || !(z ^ x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y(\\overline{(\\overline{z + x})y})",
+    "logic": "y && (!((!(z || x)) && y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z \\oplus x + y(y + x)}",
+    "logic": "!(z ^ x || y && (y || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{\\overline{y + z}})(x \\oplus z)",
+    "logic": "(!(!(y || z))) && (x ^ z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x \\oplus (\\overline{z + y})y",
+    "logic": "x ^ (!(z || y)) && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y \\oplus z + x}",
+    "logic": "!(y ^ z || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{x + y + zx} + z}",
+    "logic": "!(!(x || y || z && x) || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y \\oplus z} + x + z + y",
+    "logic": "!(y ^ z) || x || z || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(zx \\oplus \\overline{yx})(\\overline{z + y})",
+    "logic": "(z && x ^ !(y && x)) && (!(z || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y((x + z)(x \\oplus z))}",
+    "logic": "!(y && ((x || z) && (x ^ z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "xy(z + \\overline{z + x})",
+    "logic": "x && y && (z || !(z || x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z + \\overline{y + x + y}",
+    "logic": "z || !(y || x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{y \\oplus x + z}}",
+    "logic": "!(!(y ^ x || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z(y(\\overline{x \\oplus y}))",
+    "logic": "z && (y && (!(x ^ y)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + x} + z",
+    "logic": "!(y || x) || z",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x + z} \\oplus y(\\overline{y + z})",
+    "logic": "!(x || z) ^ y && (!(y || z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{z \\oplus x} + y",
+    "logic": "!(z ^ x) || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz} \\oplus yzx",
+    "logic": "!(x && z) ^ y && z && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{y + z + x + x}",
+    "logic": "!(y || z || x || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yz}(x \\oplus y)",
+    "logic": "!(y && z) && (x ^ y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{xz}} + y",
+    "logic": "!(!(x && z)) || y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xz + y} + zy",
+    "logic": "!(x && z || y) || z && y",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(zx \\oplus y)\\overline{yx}",
+    "logic": "(z && x ^ y)!(y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xzy} + z \\oplus x",
+    "logic": "!(x && z && y) || z ^ x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "yz(xz + \\overline{\\overline{x \\oplus z}})",
+    "logic": "y && z && (x && z || !(!(x ^ z)))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{x \\oplus y + z}",
+    "logic": "!(x ^ y || z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xy} + z + x",
+    "logic": "!(x && y) || z || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{yxz \\oplus z}",
+    "logic": "!(y && x && z ^ z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "z(\\overline{y \\oplus x})",
+    "logic": "z && (!(y ^ x))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y + \\overline{x(z + y)}",
+    "logic": "y || !(x && (z || y))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "(\\overline{y + z})x",
+    "logic": "(!(y || z)) && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "y \\oplus \\overline{xz}",
+    "logic": "y ^ !(x && z)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "yz\\overline{xy} \\oplus zx",
+    "logic": "y && z!(x && y) ^ z && x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x \\oplus \\overline{zyx}",
+    "logic": "x ^ !(z && y && x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "yz(\\overline{x + y}) + z + x",
+    "logic": "y && z && (!(x || y)) || z || x",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{\\overline{xzy} \\oplus y + x + y}",
+    "logic": "!(!(x && z && y) ^ y || x || y)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "\\overline{xy}(z + x)",
+    "logic": "!(x && y) && (z || x)",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "x(\\overline{y \\oplus z})",
+    "logic": "x && (!(y ^ z))",
+    "exam": false,
+    "practice": false
+  },
+  {
+    "output": "yz + \\overline{\\overline{xz}} \\oplus x + y",
+    "logic": "y && z || !(!(x && z)) ^ x || y",
+    "exam": false,
+    "practice": false
+  }
+]
