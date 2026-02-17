@@ -1,7 +1,7 @@
-use std::num::NonZeroUsize;
+use std::num::{NonZeroU8, NonZeroUsize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Gate {
+pub enum Operator {
     Buffer,
     And,
     Or,
@@ -24,6 +24,20 @@ pub struct OpList {
     pub xnor: bool,
 }
 
+impl OpList {
+    #[inline]
+    pub const fn is_empty(&self) -> bool {
+        !(self.buffer
+            || self.and
+            || self.or
+            || self.xor
+            || self.not
+            || self.nand
+            || self.nor
+            || self.xnor)
+    }
+}
+
 /// Negative = no subscript
 /// Positive = subscript is that number
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -31,7 +45,7 @@ pub struct VarName(i8);
 
 impl VarName {
     #[inline]
-    pub fn name(&self) -> char {
+    pub const fn name(&self) -> char {
         if self.0.is_negative() {
             -self.0 as u8 as char
         } else {
@@ -55,9 +69,21 @@ impl std::fmt::Display for VarName {
     }
 }
 
-#[derive(Debug, Clone)]
+/// An expression whose `outer_precedence` is greater than the `inner_precedence`
+/// of the expression it is an argument to must be wrapped in parentheses.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+pub enum OpPrecedence {
+    Atom,
+    Not,
+    And,
+    Xor,
+    Or,
+    #[default]
+    Top,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BooleanExpr {
-    Variable(VarName),
     Buffer(Box<BooleanExpr>),
     And(Box<(BooleanExpr, BooleanExpr)>),
     Or(Box<(BooleanExpr, BooleanExpr)>),
@@ -66,89 +92,488 @@ pub enum BooleanExpr {
     Nand(Box<(BooleanExpr, BooleanExpr)>),
     Nor(Box<(BooleanExpr, BooleanExpr)>),
     Xnor(Box<(BooleanExpr, BooleanExpr)>),
+    Variable(VarName),
+}
+
+impl From<VarName> for BooleanExpr {
+    #[inline]
+    fn from(value: VarName) -> Self {
+        Self::Variable(value)
+    }
 }
 
 impl BooleanExpr {
-    /// Stringify the expression as LaTeX (`xy`, `+`, `\overline`, `\oplus`)
-    pub fn to_tex(&self) -> String {
+    #[inline]
+    pub fn buffer(self) -> Self {
+        Self::Buffer(Box::new(self))
+    }
+    #[inline]
+    pub fn and(self, rhs: Self) -> Self {
+        Self::And(Box::new((self, rhs)))
+    }
+    #[inline]
+    pub fn or(self, rhs: Self) -> Self {
+        Self::Or(Box::new((self, rhs)))
+    }
+    #[inline]
+    pub fn xor(self, rhs: Self) -> Self {
+        Self::Xor(Box::new((self, rhs)))
+    }
+    #[inline]
+    #[allow(clippy::should_implement_trait)]
+    pub fn not(self) -> Self {
+        Self::Not(Box::new(self))
+    }
+    #[inline]
+    pub fn nand(self, rhs: Self) -> Self {
+        Self::Nand(Box::new((self, rhs)))
+    }
+    #[inline]
+    pub fn nor(self, rhs: Self) -> Self {
+        Self::Nor(Box::new((self, rhs)))
+    }
+    #[inline]
+    pub fn xnor(self, rhs: Self) -> Self {
+        Self::Xnor(Box::new((self, rhs)))
+    }
+
+    pub const fn inner_precedence(&self) -> OpPrecedence {
         match self {
-            BooleanExpr::Variable(var) => var.to_string(),
-            BooleanExpr::Buffer(x) => format!("({})", x.to_tex()),
-            BooleanExpr::And(x) => format!("({})({})", x.0.to_tex(), x.1.to_tex()),
-            BooleanExpr::Or(x) => format!("({}) + ({})", x.0.to_tex(), x.1.to_tex()),
-            BooleanExpr::Xor(x) => {
-                format!("({}) \\oplus ({})", x.0.to_tex(), x.1.to_tex())
-            }
-            BooleanExpr::Not(x) => format!("\\overline{{({})}}", x.to_tex()),
-            BooleanExpr::Nand(x) => format!("\\overline{{({})({})}}", x.0.to_tex(), x.1.to_tex()),
-            BooleanExpr::Nor(x) => format!("\\overline{{({}) + ({})}}", x.0.to_tex(), x.1.to_tex()),
-            BooleanExpr::Xnor(x) => {
+            Self::Buffer(_) => OpPrecedence::Top,
+            Self::Nand(_) | Self::And(_) => OpPrecedence::And,
+            Self::Nor(_) | Self::Or(_) => OpPrecedence::Or,
+            Self::Xnor(_) | Self::Xor(_) => OpPrecedence::Xor,
+            Self::Not(_) => OpPrecedence::Not,
+            Self::Variable(_) => OpPrecedence::Atom,
+        }
+    }
+
+    pub const fn outer_precedence(&self) -> OpPrecedence {
+        match self {
+            Self::Buffer(_) => OpPrecedence::Top,
+            Self::And(_) => OpPrecedence::And,
+            Self::Or(_) => OpPrecedence::Or,
+            Self::Xor(_) => OpPrecedence::Xor,
+            Self::Not(_) | Self::Nand(_) | Self::Nor(_) | Self::Xnor(_) => OpPrecedence::Not,
+            Self::Variable(_) => OpPrecedence::Atom,
+        }
+    }
+
+    /// Stringify the expression as LaTeX (`xy`, `+`, `\overline`, `\oplus`)
+    pub fn to_tex(&self, parent_inner_precedence: OpPrecedence) -> String {
+        let expr = match self {
+            Self::Buffer(x) => format!("({})", x.to_tex(self.inner_precedence())),
+            Self::And(x) => format!(
+                "{}{}",
+                x.0.to_tex(self.inner_precedence()),
+                x.1.to_tex(self.inner_precedence())
+            ),
+            Self::Or(x) => format!(
+                "{} + {}",
+                x.0.to_tex(self.inner_precedence()),
+                x.1.to_tex(self.inner_precedence())
+            ),
+            Self::Xor(x) => {
                 format!(
-                    "\\overline{{({}) \\oplus ({})}}",
-                    x.0.to_tex(),
-                    x.1.to_tex()
+                    "{} \\oplus {}",
+                    x.0.to_tex(self.inner_precedence()),
+                    x.1.to_tex(self.inner_precedence())
                 )
             }
+            Self::Not(x) => format!("\\overline{{{}}}", x.to_tex(self.inner_precedence())),
+            Self::Nand(x) => format!(
+                "\\overline{{{}{}}}",
+                x.0.to_tex(self.inner_precedence()),
+                x.1.to_tex(self.inner_precedence())
+            ),
+            Self::Nor(x) => format!(
+                "\\overline{{{} + {}}}",
+                x.0.to_tex(self.inner_precedence()),
+                x.1.to_tex(self.inner_precedence())
+            ),
+            Self::Xnor(x) => {
+                format!(
+                    "\\overline{{{} \\oplus {}}}",
+                    x.0.to_tex(self.inner_precedence()),
+                    x.1.to_tex(self.inner_precedence())
+                )
+            }
+            Self::Variable(var) => var.to_string(),
+        };
+        if self.outer_precedence() > parent_inner_precedence {
+            format!("({expr})")
+        } else {
+            expr
         }
     }
 
     /// Stringify the expression as typical programming logic operators (`&&`, `||`, `!`, `^`, etc.)
-    pub fn to_logic(&self) -> String {
-        match self {
-            BooleanExpr::Variable(var) => var.to_string(),
-            BooleanExpr::Buffer(x) => format!("({})", x.to_logic()),
-            BooleanExpr::And(x) => format!("({}) && ({})", x.0.to_logic(), x.1.to_logic()),
-            BooleanExpr::Or(x) => format!("({}) || ({})", x.0.to_logic(), x.1.to_logic()),
-            BooleanExpr::Xor(x) => format!("({}) ^ ({})", x.0.to_logic(), x.1.to_logic()),
-            BooleanExpr::Not(x) => format!("!({})", x.to_logic()),
-            BooleanExpr::Nand(x) => format!("!(({}) && ({}))", x.0.to_logic(), x.1.to_logic()),
-            BooleanExpr::Nor(x) => format!("!(({}) || ({}))", x.0.to_logic(), x.1.to_logic()),
-            BooleanExpr::Xnor(x) => format!("!(({}) ^ ({}))", x.0.to_logic(), x.1.to_logic()),
+    pub fn to_logic(&self, parent_inner_precedence: OpPrecedence) -> String {
+        let expr = match self {
+            Self::Buffer(x) => format!("({})", x.to_logic(self.inner_precedence())),
+            Self::And(x) => format!(
+                "{} && {}",
+                x.0.to_logic(self.inner_precedence()),
+                x.1.to_logic(self.inner_precedence())
+            ),
+            Self::Or(x) => format!(
+                "{} || {}",
+                x.0.to_logic(self.inner_precedence()),
+                x.1.to_logic(self.inner_precedence())
+            ),
+            Self::Xor(x) => format!(
+                "{} ^ {}",
+                x.0.to_logic(self.inner_precedence()),
+                x.1.to_logic(self.inner_precedence())
+            ),
+            Self::Not(x) => format!("!{}", x.to_logic(self.inner_precedence())),
+            Self::Nand(x) => format!(
+                "!({} && {})",
+                x.0.to_logic(self.inner_precedence()),
+                x.1.to_logic(self.inner_precedence())
+            ),
+            Self::Nor(x) => format!(
+                "!({} || {})",
+                x.0.to_logic(self.inner_precedence()),
+                x.1.to_logic(self.inner_precedence())
+            ),
+            Self::Xnor(x) => format!(
+                "!({} ^ {})",
+                x.0.to_logic(self.inner_precedence()),
+                x.1.to_logic(self.inner_precedence())
+            ),
+            Self::Variable(var) => var.to_string(),
+        };
+        if self.outer_precedence() > parent_inner_precedence {
+            format!("({expr})")
+        } else {
+            expr
         }
     }
 
     /// Stringify the expression as python-style logic operators (`and`, `or`, `not`, `xor`, etc.)
-    pub fn to_words(&self) -> String {
-        match self {
-            BooleanExpr::Variable(var) => var.to_string(),
-            BooleanExpr::Buffer(x) => format!("({})", x.to_words()),
-            BooleanExpr::And(x) => format!("({}) and ({})", x.0.to_words(), x.1.to_words()),
-            BooleanExpr::Or(x) => format!("({}) or ({})", x.0.to_words(), x.1.to_words()),
-            BooleanExpr::Xor(x) => format!("({}) xor ({})", x.0.to_words(), x.1.to_words()),
-            BooleanExpr::Not(x) => format!("not ({})", x.to_words()),
-            BooleanExpr::Nand(x) => format!("not (({}) and ({}))", x.0.to_words(), x.1.to_words()),
-            BooleanExpr::Nor(x) => format!("not (({}) or ({}))", x.0.to_words(), x.1.to_words()),
-            BooleanExpr::Xnor(x) => format!("not (({}) xor ({}))", x.0.to_words(), x.1.to_words()),
+    pub fn to_words(&self, parent_inner_precedence: OpPrecedence) -> String {
+        let expr = match self {
+            Self::Buffer(x) => format!("({})", x.to_words(self.inner_precedence())),
+            Self::And(x) => format!(
+                "{} and {}",
+                x.0.to_words(self.inner_precedence()),
+                x.1.to_words(self.inner_precedence())
+            ),
+            Self::Or(x) => format!(
+                "{} or {}",
+                x.0.to_words(self.inner_precedence()),
+                x.1.to_words(self.inner_precedence())
+            ),
+            Self::Xor(x) => format!(
+                "{} xor {}",
+                x.0.to_words(self.inner_precedence()),
+                x.1.to_words(self.inner_precedence())
+            ),
+            Self::Not(x) => format!("not {}", x.to_words(self.inner_precedence())),
+            Self::Nand(x) => format!(
+                "not ({} and {})",
+                x.0.to_words(self.inner_precedence()),
+                x.1.to_words(self.inner_precedence())
+            ),
+            Self::Nor(x) => format!(
+                "not ({} or {})",
+                x.0.to_words(self.inner_precedence()),
+                x.1.to_words(self.inner_precedence())
+            ),
+            Self::Xnor(x) => format!(
+                "not ({} xor {})",
+                x.0.to_words(self.inner_precedence()),
+                x.1.to_words(self.inner_precedence())
+            ),
+            Self::Variable(var) => var.to_string(),
+        };
+        if self.outer_precedence() > parent_inner_precedence {
+            format!("({expr})")
+        } else {
+            expr
         }
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum AddGateError {
+    OutOfIds,
+    IndexOutOfBounds,
+}
+
+impl std::fmt::Display for AddGateError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AddGateError::OutOfIds => write!(f, "circuit cannot exceed {} elements", u16::MAX),
+            AddGateError::IndexOutOfBounds => write!(f, "gate connects to an out of bounds index"),
+        }
+    }
+}
+
+impl std::error::Error for AddGateError {}
+
+/// Number fields are input indices
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Gate {
+    Buffer(u16),
+    And(u16, u16),
+    Or(u16, u16),
+    Xor(u16, u16),
+    Not(u16),
+    Nand(u16, u16),
+    Nor(u16, u16),
+    Xnor(u16, u16),
+    Variable(VarName),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct Rectangle {
+    x: u32,
+    y: u32,
+    w: u32,
+    h: u32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Element {
+    pub rect: Rectangle,
+    pub gate: Gate,
+}
+
+impl Gate {
+    pub const fn is_valid(self, gate_count: usize) -> bool {
+        match self {
+            Gate::Buffer(x) | Gate::Not(x) => (x as usize) < gate_count,
+            Gate::And(a, b)
+            | Gate::Or(a, b)
+            | Gate::Xor(a, b)
+            | Gate::Nand(a, b)
+            | Gate::Nor(a, b)
+            | Gate::Xnor(a, b) => (a as usize) < gate_count && (b as usize) < gate_count,
+            Gate::Variable(_) => true,
+        }
+    }
+}
+
+/// Append only, no remove.
+///
+/// Gates should never connect to a gate at a higher index than their own.
 #[derive(Debug, Clone)]
 pub struct Circuit {
+    /// Inputs are all first.
     gates: Vec<Gate>,
-    wires: Vec<(usize, usize)>,
 }
 
 impl Circuit {
+    /// Returns the index of the newly added gate.
+    ///
+    /// Element is not added on error.
+    pub fn add_gate(&mut self, gate: Gate) -> Result<u16, AddGateError> {
+        if gate.is_valid(self.gates.len()) {
+            u16::try_from(self.gates.len())
+                .map_err(|_| AddGateError::OutOfIds)
+                .inspect(|_| self.gates.push(gate))
+        } else {
+            Err(AddGateError::IndexOutOfBounds)
+        }
+    }
+
+    /// Returns an iterator over the indices of the newly added gates.
+    ///
+    /// No elements are added on error.
+    pub fn add_gates(&mut self, gates: &[Gate]) -> Result<std::ops::Range<u16>, AddGateError> {
+        let start =
+            u16::try_from(self.gates.len()).expect("circuit should never exceed u16::MAX elements");
+        let end = self
+            .gates
+            .len()
+            .checked_add(gates.len())
+            .and_then(|n| u16::try_from(n).ok())
+            .ok_or(AddGateError::OutOfIds)?;
+        if gates.iter().enumerate().all(|(i, gate)| gate.is_valid(i)) {
+            self.gates.reserve(gates.len());
+            self.gates.extend(gates);
+            Ok(start..end)
+        } else {
+            Err(AddGateError::IndexOutOfBounds)
+        }
+    }
+
     /// Generate a random boolean expression with exactly `input_count` x and depth in `depth_range`,
     /// using only `operators` operators.
     ///
     /// Returns [`None`] if `operators` is empty.
     pub fn generate_random(
-        input_count: NonZeroUsize,
+        input_count: NonZeroU8,
         depth_range: std::ops::RangeInclusive<NonZeroUsize>,
         operators: OpList,
     ) -> Option<Self> {
-        todo!()
+        if operators.is_empty() {
+            return None;
+        }
+        const NON_SUBSCRIPT_NAMES: &[u8] = b"xyzw";
+        let inputs = if (input_count.get() as usize) <= NON_SUBSCRIPT_NAMES.len() {
+            NON_SUBSCRIPT_NAMES
+                .iter()
+                .take(input_count.get() as usize)
+                .map(|&v| Gate::Variable(VarName(-(v as i8))))
+                .collect()
+        } else {
+            (0..input_count.get())
+                .map(|v| Gate::Variable(VarName(v as i8)))
+                .collect()
+        };
+        let mut circuit = Self { gates: inputs };
+        // TODO
+        Some(circuit)
     }
 
     /// Convert a circuit to a [`BooleanExpr`]
-    pub fn to_boolean_expression(&self) -> BooleanExpr {
-        todo!()
+    ///
+    /// Returns [`None`] if circuit is empty
+    pub fn to_boolean_expr(&self) -> Option<BooleanExpr> {
+        // Assumes no gate connects to a gate at a greater index than its own.
+
+        fn convert(src: &[Gate], idx: u16) -> BooleanExpr {
+            match src[idx as usize] {
+                Gate::Buffer(x) => convert(src, x).buffer(),
+                Gate::And(a, b) => convert(src, a).and(convert(src, b)),
+                Gate::Or(a, b) => convert(src, a).or(convert(src, b)),
+                Gate::Xor(a, b) => convert(src, a).xor(convert(src, b)),
+                Gate::Not(x) => convert(src, x).not(),
+                Gate::Nand(a, b) => convert(src, a).nand(convert(src, b)),
+                Gate::Nor(a, b) => convert(src, a).nor(convert(src, b)),
+                Gate::Xnor(a, b) => convert(src, a).xnor(convert(src, b)),
+                Gate::Variable(v) => BooleanExpr::Variable(v),
+            }
+        }
+
+        u16::try_from(self.gates.len())
+            .expect("circuit should not exceed u16::MAX elements")
+            .checked_sub(1)
+            .map(|root| convert(self.gates.as_slice(), root))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    impl VarName {
+        pub const fn from_char(ch: char) -> Self {
+            assert!(ch.is_ascii(), "VarName must be ascii");
+            assert!((ch as u8) < i8::MAX as u8, "VarName out of bounds");
+            Self(-(ch as u8 as i8))
+        }
+    }
+
+    #[test]
+    fn test_empty_to_boolean_expr() {
+        assert_eq!(
+            Circuit {
+                gates: Vec::from([])
+            }
+            .to_boolean_expr(),
+            None
+        );
+    }
+
+    #[test]
+    fn test_var_to_boolean_expr() {
+        let a = VarName::from_char('a');
+        assert_eq!(
+            Circuit {
+                gates: Vec::from([Gate::Variable(a)])
+            }
+            .to_boolean_expr(),
+            Some(BooleanExpr::Variable(a))
+        );
+    }
+
+    #[test]
+    fn test_buffer_to_boolean_expr() {
+        let a = VarName::from_char('a');
+        assert_eq!(
+            Circuit {
+                gates: Vec::from([Gate::Variable(a), Gate::Buffer(0)])
+            }
+            .to_boolean_expr(),
+            Some(BooleanExpr::Variable(a).buffer())
+        );
+    }
+
+    #[test]
+    fn test_combo_to_boolean_expr() {
+        let a = VarName::from_char('a');
+        let b = VarName::from_char('b');
+        assert_eq!(
+            Circuit {
+                gates: Vec::from([Gate::Variable(a), Gate::Variable(b), Gate::And(0, 1),])
+            }
+            .to_boolean_expr(),
+            Some(BooleanExpr::Variable(a).and(BooleanExpr::Variable(b)))
+        );
+    }
+
+    #[test]
+    fn test_combo_of_combo_to_boolean_expr() {
+        let a = VarName::from_char('a');
+        let b = VarName::from_char('b');
+        assert_eq!(
+            Circuit {
+                gates: Vec::from([
+                    Gate::Variable(a),
+                    Gate::Variable(b),
+                    Gate::And(0, 1),
+                    Gate::Nor(0, 2)
+                ])
+            }
+            .to_boolean_expr(),
+            Some(
+                BooleanExpr::Variable(a)
+                    .nor(BooleanExpr::Variable(a).and(BooleanExpr::Variable(b)))
+            )
+        );
+    }
+
+    #[test]
+    fn test_boolean_expr_to_tex() {
+        let a = VarName::from_char('a');
+        let b = VarName::from_char('b');
+        assert_eq!(
+            BooleanExpr::Variable(a)
+                .nor(BooleanExpr::Variable(a).and(BooleanExpr::Variable(b)))
+                .to_tex(Default::default())
+                .as_str(),
+            "\\overline{a + ab}"
+        );
+    }
+
+    #[test]
+    fn test_boolean_expr_to_tex_paren1() {
+        let a = VarName::from_char('a');
+        let b = VarName::from_char('b');
+        assert_eq!(
+            BooleanExpr::Variable(a)
+                .and(BooleanExpr::Variable(a).or(BooleanExpr::Variable(b)))
+                .to_tex(Default::default())
+                .as_str(),
+            "a(a + b)"
+        );
+    }
+
+    #[test]
+    fn test_boolean_expr_to_tex_paren2() {
+        let a = VarName::from_char('a');
+        let b = VarName::from_char('b');
+        assert_eq!(
+            BooleanExpr::Variable(a)
+                .or(BooleanExpr::Variable(b))
+                .and(BooleanExpr::Variable(a).or(BooleanExpr::Variable(b)))
+                .to_tex(Default::default())
+                .as_str(),
+            "(a + b)(a + b)"
+        );
+    }
 }
