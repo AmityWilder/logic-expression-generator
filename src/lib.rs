@@ -74,16 +74,20 @@ impl BooleanExpr {
         match self {
             BooleanExpr::Variable(var) => var.to_string(),
             BooleanExpr::Buffer(x) => format!("({})", x.to_tex()),
-            BooleanExpr::And(x) => format!("{}{}", x.0.to_tex(), x.1.to_tex()),
-            BooleanExpr::Or(x) => format!("{} + {}", x.0.to_tex(), x.1.to_tex()),
+            BooleanExpr::And(x) => format!("({})({})", x.0.to_tex(), x.1.to_tex()),
+            BooleanExpr::Or(x) => format!("({}) + ({})", x.0.to_tex(), x.1.to_tex()),
             BooleanExpr::Xor(x) => {
-                format!("{} \\oplus {}", x.0.to_tex(), x.1.to_tex())
+                format!("({}) \\oplus ({})", x.0.to_tex(), x.1.to_tex())
             }
-            BooleanExpr::Not(x) => format!("\\overline{{{}}}", x.to_tex()),
-            BooleanExpr::Nand(x) => format!("\\overline{{{}{}}}", x.0.to_tex(), x.1.to_tex()),
-            BooleanExpr::Nor(x) => format!("\\overline{{{} + {}}}", x.0.to_tex(), x.1.to_tex()),
+            BooleanExpr::Not(x) => format!("\\overline{{({})}}", x.to_tex()),
+            BooleanExpr::Nand(x) => format!("\\overline{{({})({})}}", x.0.to_tex(), x.1.to_tex()),
+            BooleanExpr::Nor(x) => format!("\\overline{{({}) + ({})}}", x.0.to_tex(), x.1.to_tex()),
             BooleanExpr::Xnor(x) => {
-                format!("\\overline{{{} \\oplus {}}}", x.0.to_tex(), x.1.to_tex())
+                format!(
+                    "\\overline{{({}) \\oplus ({})}}",
+                    x.0.to_tex(),
+                    x.1.to_tex()
+                )
             }
         }
     }
