@@ -54,6 +54,7 @@ impl BooleanExpr {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Circuit {
     gates: Vec<Gate>,
     wires: Vec<(usize, usize)>,
@@ -62,15 +63,17 @@ pub struct Circuit {
 impl Circuit {
     /// Generate a random boolean expression with exactly `input_count` inputs and depth in `depth_range`,
     /// using only `operators` operators.
+    /// 
+    /// Returns [`None`] if `operators` is empty.
     pub fn generate_random(
         input_count: NonZeroUsize,
         depth_range: std::ops::RangeInclusive<NonZeroUsize>,
         operators: OpList,
-    ) -> Self {
+    ) -> Option<Self> {
         todo!()
     }
 
-    /// Convert a circuit to a [BooleanExpr]
+    /// Convert a circuit to a [`BooleanExpr`]
     pub fn to_boolean_expression(&self) -> BooleanExpr {
         todo!()
     }
