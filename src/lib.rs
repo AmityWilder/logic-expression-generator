@@ -452,7 +452,7 @@ impl Circuit {
                 .extend((0..input_count.get()).map(|v| Gate::Variable(VarName(v as i8))));
         };
 
-        for i in input_count.get() as u16..depth.get() {
+        for i in input_count.get() as u16..input_count.get() as u16 + depth.get() {
             let [a, b] = rand::seq::index::sample_array::<_, 2>(&mut rng, i as usize)
                 .expect("should be guarateed by NonZero");
             let [a, b] = [a as u16, b as u16];
