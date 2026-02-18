@@ -629,6 +629,9 @@ impl CCircuit {
     }
 }
 
+#[repr(C)]
+pub struct CBooleanExpr(*mut std::ffi::c_void);
+
 /// Returns `null` for [`None`]
 #[unsafe(no_mangle)]
 pub extern "C" fn generate_random_circuit(
@@ -666,8 +669,18 @@ pub extern "C" fn generate_random_circuit(
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn circuit_is_none(circuit: &CCircuit) -> bool {
+pub extern "C" fn circuit_is_none(circuit: CCircuit) -> bool {
     circuit.data.is_null()
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn circuit_to_boolean_expr(circuit: CCircuit) -> CBooleanExpr {
+    if let Some(circ) = unsafe { circuit.into_circuit() } {
+        // CBooleanExpr::from_boolean_expr(circuit.into_circuit())
+        todo!()
+    } else {
+        CBooleanExpr(std::ptr::null_mut())
+    }
 }
 
 #[cfg(test)]
