@@ -1,3 +1,7 @@
+[lib]
+name = "logic_expression_generator"
+crate-type = ["dylib"]
+
 [package]
 name = "logic-expression-generator"
 version = "0.1.0"

@@ -504,6 +504,85 @@ impl Circuit {
     }
 }
 
+#[repr(C)]
+pub struct CCircuit {
+    data: *mut std::ffi::c_void,
+    size: usize,
+}
+
+impl CCircuit {
+    pub fn from_circuit(value: Option<Circuit>) -> Self {
+        match value {
+            Some(circ) => {
+                let data = circ.gates.into_boxed_slice();
+                let size = data.len();
+                Self {
+                    data: Box::into_raw(data).cast(),
+                    size,
+                }
+            }
+            None => Self {
+                data: std::ptr::null_mut(),
+                size: 0,
+            },
+        }
+    }
+
+    /// # Safety
+    ///
+    /// `self` must have been created with [`CCircuit::from_circuit`] and be untampered with.
+    pub unsafe fn into_circuit(self) -> Option<Circuit> {
+        (!self.data.is_null()).then(|| {
+            let raw = std::ptr::slice_from_raw_parts_mut(self.data.cast::<Gate>(), self.size);
+            Circuit {
+                // SAFETY: Caller must uphold safety contract
+                gates: unsafe { Box::from_raw(raw) }.to_vec(),
+            }
+        })
+    }
+}
+
+/// Returns `null` for [`None`]
+#[unsafe(no_mangle)]
+pub extern "C" fn generate_random_circuit(
+    input_count: u8,
+    depth: u16,
+    buffer: bool,
+    and: bool,
+    or: bool,
+    xor: bool,
+    not: bool,
+    nand: bool,
+    nor: bool,
+    xnor: bool,
+) -> CCircuit {
+    CCircuit::from_circuit(
+        NonZeroU8::new(input_count)
+            .zip(NonZeroU16::new(depth))
+            .and_then(|(input_count, depth)| {
+                Circuit::generate_random(
+                    input_count,
+                    depth,
+                    OpList {
+                        buffer,
+                        and,
+                        or,
+                        xor,
+                        not,
+                        nand,
+                        nor,
+                        xnor,
+                    },
+                )
+            }),
+    )
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn circuit_is_none(circuit: &CCircuit) -> bool {
+    circuit.data.is_null()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
