@@ -1,4 +1,7 @@
-use std::num::{NonZeroU8, NonZeroUsize};
+#![forbid(clippy::undocumented_unsafe_blocks, clippy::missing_safety_doc)]
+
+use rand::prelude::*;
+use std::num::{NonZeroU8, NonZeroU16};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Operator {
@@ -35,6 +38,21 @@ impl OpList {
             || self.nand
             || self.nor
             || self.xnor)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = Operator> {
+        [
+            self.buffer.then_some(Operator::Buffer),
+            self.and.then_some(Operator::And),
+            self.or.then_some(Operator::Or),
+            self.xor.then_some(Operator::Xor),
+            self.not.then_some(Operator::Not),
+            self.nand.then_some(Operator::Nand),
+            self.nor.then_some(Operator::Nor),
+            self.xnor.then_some(Operator::Xnor),
+        ]
+        .into_iter()
+        .flatten()
     }
 }
 
@@ -406,26 +424,56 @@ impl Circuit {
     /// Returns [`None`] if `operators` is empty.
     pub fn generate_random(
         input_count: NonZeroU8,
-        depth_range: std::ops::RangeInclusive<NonZeroUsize>,
+        depth: NonZeroU16,
         operators: OpList,
     ) -> Option<Self> {
         if operators.is_empty() {
             return None;
         }
-        const NON_SUBSCRIPT_NAMES: &[u8] = b"xyzw";
-        let inputs = if (input_count.get() as usize) <= NON_SUBSCRIPT_NAMES.len() {
-            NON_SUBSCRIPT_NAMES
-                .iter()
-                .take(input_count.get() as usize)
-                .map(|&v| Gate::Variable(VarName(-(v as i8))))
-                .collect()
-        } else {
-            (0..input_count.get())
-                .map(|v| Gate::Variable(VarName(v as i8)))
-                .collect()
+
+        let ops: Vec<_> = operators.iter().collect();
+        let mut rng = rand::rng();
+
+        let mut circuit = Self {
+            gates: Vec::with_capacity(input_count.get() as usize + depth.get() as usize),
         };
-        let mut circuit = Self { gates: inputs };
-        // TODO
+
+        const NON_SUBSCRIPT_NAMES: &[u8] = b"xyzw";
+        if (input_count.get() as usize) <= NON_SUBSCRIPT_NAMES.len() {
+            circuit.gates.extend(
+                NON_SUBSCRIPT_NAMES
+                    .iter()
+                    .take(input_count.get() as usize)
+                    .map(|&v| Gate::Variable(VarName(-(v as i8)))),
+            );
+        } else {
+            circuit
+                .gates
+                .extend((0..input_count.get()).map(|v| Gate::Variable(VarName(v as i8))));
+        };
+
+        for i in input_count.get() as u16..depth.get() {
+            let [a, b] = rand::seq::index::sample_array::<_, 2>(&mut rng, i as usize)
+                .expect("should be guarateed by NonZero");
+            let [a, b] = [a as u16, b as u16];
+            circuit
+                .add_gate(
+                    match ops
+                        .choose(&mut rng)
+                        .expect("should have exited if no operators")
+                    {
+                        Operator::Buffer => Gate::Buffer(a),
+                        Operator::And => Gate::And(a, b),
+                        Operator::Or => Gate::Or(a, b),
+                        Operator::Xor => Gate::Xor(a, b),
+                        Operator::Not => Gate::Not(a),
+                        Operator::Nand => Gate::Nand(a, b),
+                        Operator::Nor => Gate::Nor(a, b),
+                        Operator::Xnor => Gate::Xnor(a, b),
+                    },
+                )
+                .expect("for loop should ensure increment, and ID count should be guarded against");
+        }
         Some(circuit)
     }
 
@@ -575,5 +623,32 @@ mod tests {
                 .as_str(),
             "(a + b)(a + b)"
         );
+    }
+
+    #[test]
+    fn test_gen_circuit() {
+        let circ = Circuit::generate_random(
+            NonZeroU8::new(2).unwrap(),
+            NonZeroU16::new(10).unwrap(),
+            OpList {
+                buffer: false,
+                and: true,
+                or: true,
+                xor: true,
+                not: true,
+                nand: false,
+                nor: false,
+                xnor: false,
+            },
+        )
+        .unwrap();
+        println!("{circ:?}");
+        println!();
+        let expr = circ.to_boolean_expr().unwrap();
+        println!("{expr:?}");
+        println!();
+        println!("LaTeX: {}", expr.to_tex(Default::default()));
+        println!("logic: {}", expr.to_logic(Default::default()));
+        println!("words: {}", expr.to_words(Default::default()));
     }
 }
