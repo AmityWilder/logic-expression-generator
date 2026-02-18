@@ -9,5 +9,6 @@ ffi.cdef("""
     CCircuit generate_random_circuit(unsigned char, unsigned short, bool, bool, bool, bool, bool, bool, bool, bool);
 """)
 
-C = ffi.dlopen("./target/debug/logic_expression_generator.dll")
-C.generate_random_circuit(1, 5, )
+C = ffi.dlopen("./target/debug/liblogic_expression_generator.dylib")
+circuit = C.generate_random_circuit(1, 5, True, True, True, True, True, True, True, True)
+print(circuit)

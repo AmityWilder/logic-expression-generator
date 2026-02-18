@@ -2,9 +2,11 @@
 
 use rand::prelude::*;
 use std::num::{NonZeroU8, NonZeroU16};
+use arrayvec::ArrayVec;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Operator {
+    #[default]
     Buffer,
     And,
     Or,
@@ -27,6 +29,38 @@ pub struct OpList {
     pub xnor: bool,
 }
 
+impl std::ops::Index<Operator> for OpList {
+    type Output = bool;
+
+    fn index(&self, index: Operator) -> &Self::Output {
+        match index {
+            Operator::Buffer => &self.buffer,
+            Operator::And => &self.and,
+            Operator::Or => &self.or,
+            Operator::Xor => &self.xor,
+            Operator::Not => &self.not,
+            Operator::Nand => &self.nand,
+            Operator::Nor => &self.nor,
+            Operator::Xnor => &self.xnor,
+        }
+    }
+}
+
+impl std::ops::IndexMut<Operator> for OpList {
+    fn index_mut(&mut self, index: Operator) -> &mut Self::Output {
+        match index {
+            Operator::Buffer => &mut self.buffer,
+            Operator::And => &mut self.and,
+            Operator::Or => &mut self.or,
+            Operator::Xor => &mut self.xor,
+            Operator::Not => &mut self.not,
+            Operator::Nand => &mut self.nand,
+            Operator::Nor => &mut self.nor,
+            Operator::Xnor => &mut self.xnor,
+        }
+    }
+}
+
 impl OpList {
     #[inline]
     pub const fn is_empty(&self) -> bool {
@@ -40,19 +74,60 @@ impl OpList {
             || self.xnor)
     }
 
+    #[inline]
+    pub const fn len(&self) -> usize {
+        (self.buffer as u8
+            + self.and as u8
+            + self.or as u8
+            + self.xor as u8
+            + self.not as u8
+            + self.nand as u8
+            + self.nor as u8
+            + self.xnor as u8) as usize
+    }
+
+    /// `len` of single-input operators
+    #[inline]
+    pub const fn mono_len(&self) -> usize {
+        (self.buffer as u8 + self.not as u8) as usize
+    }
+
+    #[inline]
     pub fn iter(&self) -> impl Iterator<Item = Operator> {
         [
             self.buffer.then_some(Operator::Buffer),
+            self.not.then_some(Operator::Not),
+            // ^ single-input first ^
             self.and.then_some(Operator::And),
             self.or.then_some(Operator::Or),
             self.xor.then_some(Operator::Xor),
-            self.not.then_some(Operator::Not),
             self.nand.then_some(Operator::Nand),
             self.nor.then_some(Operator::Nor),
             self.xnor.then_some(Operator::Xnor),
         ]
         .into_iter()
         .flatten()
+    }
+
+    /// Iterator over single-input operators
+    #[inline]
+    pub fn iter_mono(&self) -> impl Iterator<Item = Operator> {
+        [
+            self.buffer.then_some(Operator::Buffer),
+            self.not.then_some(Operator::Not),
+        ]
+        .into_iter()
+        .flatten()
+    }
+
+    #[inline]
+    pub fn array(&self) -> ArrayVec<Operator, 8> {
+        self.iter().collect()
+    }
+
+    #[inline]
+    pub fn mono_array(&self) -> ArrayVec<Operator, 2> {
+        self.iter_mono().collect()
     }
 }
 
@@ -421,17 +496,19 @@ impl Circuit {
     /// Generate a random boolean expression with exactly `input_count` x and depth in `depth_range`,
     /// using only `operators` operators.
     ///
-    /// Returns [`None`] if `operators` is empty.
+    /// Returns [`None`] if `operators` is empty, or includes no single-input gates in a single-input circuit.
     pub fn generate_random(
         input_count: NonZeroU8,
         depth: NonZeroU16,
         operators: OpList,
     ) -> Option<Self> {
-        if operators.is_empty() {
+        if operators.is_empty() || (input_count.get() == 1 && operators.mono_len() == 0) {
             return None;
         }
 
-        let ops: Vec<_> = operators.iter().collect();
+        let ops = operators.array();
+        let mono_ops = &ops[..operators.mono_len()];
+        
         let mut rng = rand::rng();
 
         let mut circuit = Self {
@@ -453,25 +530,35 @@ impl Circuit {
         };
 
         for i in input_count.get() as u16..input_count.get() as u16 + depth.get() {
-            let [a, b] = rand::seq::index::sample_array::<_, 2>(&mut rng, i as usize)
-                .expect("should be guarateed by NonZero");
-            let [a, b] = [a as u16, b as u16];
+            let gate = if i >= 2 {
+                let [a, b] = rand::seq::index::sample_array::<_, 2>(&mut rng, i as usize)
+                    .expect("should be guaranteed by i>=2");
+                let [a, b] = [a as u16, b as u16];
+                match ops
+                    .choose(&mut rng)
+                    .expect("should have exited if no operators")
+                {
+                    Operator::Buffer => Gate::Buffer(a),
+                    Operator::And => Gate::And(a, b),
+                    Operator::Or => Gate::Or(a, b),
+                    Operator::Xor => Gate::Xor(a, b),
+                    Operator::Not => Gate::Not(a),
+                    Operator::Nand => Gate::Nand(a, b),
+                    Operator::Nor => Gate::Nor(a, b),
+                    Operator::Xnor => Gate::Xnor(a, b),
+                }
+            } else {
+                let a = rand::random_range(..i);
+                match mono_ops.choose(&mut rng).copied()
+                    .expect("should have exited if only one input and no single-input operators")
+                {
+                    Operator::Buffer => Gate::Buffer(a),
+                    Operator::Not => Gate::Not(a),
+                    _ => unreachable!("mono_ops should never contain a multi-input operator"),
+                }
+            };
             circuit
-                .add_gate(
-                    match ops
-                        .choose(&mut rng)
-                        .expect("should have exited if no operators")
-                    {
-                        Operator::Buffer => Gate::Buffer(a),
-                        Operator::And => Gate::And(a, b),
-                        Operator::Or => Gate::Or(a, b),
-                        Operator::Xor => Gate::Xor(a, b),
-                        Operator::Not => Gate::Not(a),
-                        Operator::Nand => Gate::Nand(a, b),
-                        Operator::Nor => Gate::Nor(a, b),
-                        Operator::Xnor => Gate::Xnor(a, b),
-                    },
-                )
+                .add_gate(gate)
                 .expect("for loop should ensure increment, and ID count should be guarded against");
         }
         Some(circuit)
