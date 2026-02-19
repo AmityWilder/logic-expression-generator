@@ -1,6 +1,6 @@
 [lib]
 name = "logic_expression_generator"
-crate-type = ["dylib"]
+crate-type = ["cdylib"]
 
 [package]
 name = "logic-expression-generator"
@@ -9,4 +9,5 @@ edition = "2024"
 
 [dependencies]
 arrayvec = "0.7.6"
+pyo3 = { version = "0.28.2", features = ["abi3-py38"] }
 rand = "0.10.0"

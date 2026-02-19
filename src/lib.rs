@@ -1,8 +1,9 @@
 #![forbid(clippy::undocumented_unsafe_blocks, clippy::missing_safety_doc)]
 
+use arrayvec::ArrayVec;
+use pyo3::{PyErr, exceptions::PyValueError, prelude::*};
 use rand::prelude::*;
 use std::num::{NonZeroU8, NonZeroU16};
-use arrayvec::ArrayVec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Operator {
@@ -133,7 +134,7 @@ impl OpList {
 
 /// Negative = no subscript
 /// Positive = subscript is that number
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, IntoPyObject)]
 pub struct VarName(i8);
 
 impl VarName {
@@ -407,7 +408,7 @@ impl std::fmt::Display for AddGateError {
 impl std::error::Error for AddGateError {}
 
 /// Number fields are input indices
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, IntoPyObject)]
 pub enum Gate {
     Buffer(u16),
     And(u16, u16),
@@ -452,7 +453,7 @@ impl Gate {
 /// Append only, no remove.
 ///
 /// Gates should never connect to a gate at a higher index than their own.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, IntoPyObject)]
 pub struct Circuit {
     /// Inputs are all first.
     gates: Vec<Gate>,
@@ -508,7 +509,7 @@ impl Circuit {
 
         let ops = operators.array();
         let mono_ops = &ops[..operators.mono_len()];
-        
+
         let mut rng = rand::rng();
 
         let mut circuit = Self {
@@ -530,33 +531,34 @@ impl Circuit {
         };
 
         for i in input_count.get() as u16..input_count.get() as u16 + depth.get() {
-            let gate = if i >= 2 {
-                let [a, b] = rand::seq::index::sample_array::<_, 2>(&mut rng, i as usize)
-                    .expect("should be guaranteed by i>=2");
-                let [a, b] = [a as u16, b as u16];
-                match ops
-                    .choose(&mut rng)
-                    .expect("should have exited if no operators")
-                {
-                    Operator::Buffer => Gate::Buffer(a),
-                    Operator::And => Gate::And(a, b),
-                    Operator::Or => Gate::Or(a, b),
-                    Operator::Xor => Gate::Xor(a, b),
-                    Operator::Not => Gate::Not(a),
-                    Operator::Nand => Gate::Nand(a, b),
-                    Operator::Nor => Gate::Nor(a, b),
-                    Operator::Xnor => Gate::Xnor(a, b),
-                }
-            } else {
-                let a = rand::random_range(..i);
-                match mono_ops.choose(&mut rng).copied()
-                    .expect("should have exited if only one input and no single-input operators")
-                {
-                    Operator::Buffer => Gate::Buffer(a),
-                    Operator::Not => Gate::Not(a),
-                    _ => unreachable!("mono_ops should never contain a multi-input operator"),
-                }
-            };
+            let gate =
+                if i >= 2 {
+                    let [a, b] = rand::seq::index::sample_array::<_, 2>(&mut rng, i as usize)
+                        .expect("should be guaranteed by i>=2");
+                    let [a, b] = [a as u16, b as u16];
+                    match ops
+                        .choose(&mut rng)
+                        .expect("should have exited if no operators")
+                    {
+                        Operator::Buffer => Gate::Buffer(a),
+                        Operator::And => Gate::And(a, b),
+                        Operator::Or => Gate::Or(a, b),
+                        Operator::Xor => Gate::Xor(a, b),
+                        Operator::Not => Gate::Not(a),
+                        Operator::Nand => Gate::Nand(a, b),
+                        Operator::Nor => Gate::Nor(a, b),
+                        Operator::Xnor => Gate::Xnor(a, b),
+                    }
+                } else {
+                    let a = rand::random_range(..i);
+                    match mono_ops.choose(&mut rng).copied().expect(
+                        "should have exited if only one input and no single-input operators",
+                    ) {
+                        Operator::Buffer => Gate::Buffer(a),
+                        Operator::Not => Gate::Not(a),
+                        _ => unreachable!("mono_ops should never contain a multi-input operator"),
+                    }
+                };
             circuit
                 .add_gate(gate)
                 .expect("for loop should ensure increment, and ID count should be guarded against");
@@ -591,95 +593,46 @@ impl Circuit {
     }
 }
 
-#[repr(C)]
-pub struct CCircuit {
-    data: *mut std::ffi::c_void,
-    size: usize,
-}
+#[pymodule]
+mod logic_expression_generator {
+    use super::*;
 
-impl CCircuit {
-    pub fn from_circuit(value: Option<Circuit>) -> Self {
-        match value {
-            Some(circ) => {
-                let data = circ.gates.into_boxed_slice();
-                let size = data.len();
-                Self {
-                    data: Box::into_raw(data).cast(),
-                    size,
-                }
+    #[pyfunction]
+    fn generate_random_circuit(
+        input_count: u8,
+        depth: u16,
+        operators: Vec<String>,
+    ) -> PyResult<Option<Circuit>> {
+        let mut ops = OpList::default();
+        for op in operators {
+            if op.eq_ignore_ascii_case("buffer") {
+                ops.buffer |= true;
+            } else if op.eq_ignore_ascii_case("and") {
+                ops.and |= true;
+            } else if op.eq_ignore_ascii_case("or") {
+                ops.or |= true;
+            } else if op.eq_ignore_ascii_case("xor") {
+                ops.xor |= true;
+            } else if op.eq_ignore_ascii_case("not") {
+                ops.not |= true;
+            } else if op.eq_ignore_ascii_case("nand") {
+                ops.nand |= true;
+            } else if op.eq_ignore_ascii_case("nor") {
+                ops.nor |= true;
+            } else if op.eq_ignore_ascii_case("xnor") {
+                ops.xnor |= true;
+            } else {
+                return Err(PyErr::new::<PyValueError, _>(format!(
+                    "unrecognized operator: \"{op}\""
+                )));
             }
-            None => Self {
-                data: std::ptr::null_mut(),
-                size: 0,
-            },
         }
-    }
-
-    /// # Safety
-    ///
-    /// `self` must have been created with [`CCircuit::from_circuit`] and be untampered with.
-    pub unsafe fn into_circuit(self) -> Option<Circuit> {
-        (!self.data.is_null()).then(|| {
-            let raw = std::ptr::slice_from_raw_parts_mut(self.data.cast::<Gate>(), self.size);
-            Circuit {
-                // SAFETY: Caller must uphold safety contract
-                gates: unsafe { Box::from_raw(raw) }.to_vec(),
-            }
-        })
-    }
-}
-
-#[repr(C)]
-pub struct CBooleanExpr(*mut std::ffi::c_void);
-
-/// Returns `null` for [`None`]
-#[unsafe(no_mangle)]
-pub extern "C" fn generate_random_circuit(
-    input_count: u8,
-    depth: u16,
-    buffer: bool,
-    and: bool,
-    or: bool,
-    xor: bool,
-    not: bool,
-    nand: bool,
-    nor: bool,
-    xnor: bool,
-) -> CCircuit {
-    CCircuit::from_circuit(
         NonZeroU8::new(input_count)
             .zip(NonZeroU16::new(depth))
-            .and_then(|(input_count, depth)| {
-                Circuit::generate_random(
-                    input_count,
-                    depth,
-                    OpList {
-                        buffer,
-                        and,
-                        or,
-                        xor,
-                        not,
-                        nand,
-                        nor,
-                        xnor,
-                    },
-                )
-            }),
-    )
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn circuit_is_none(circuit: CCircuit) -> bool {
-    circuit.data.is_null()
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn circuit_to_boolean_expr(circuit: CCircuit) -> CBooleanExpr {
-    if let Some(circ) = unsafe { circuit.into_circuit() } {
-        // CBooleanExpr::from_boolean_expr(circuit.into_circuit())
-        todo!()
-    } else {
-        CBooleanExpr(std::ptr::null_mut())
+            .map(|(input_count, depth)| Circuit::generate_random(input_count, depth, ops))
+            .ok_or(PyErr::new::<PyValueError, _>(
+                "input_count and depth must be non-zero",
+            ))
     }
 }
 

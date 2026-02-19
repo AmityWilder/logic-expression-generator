@@ -1,15 +1,4 @@
-from cffi import FFI
+import logic_expression_generator
 
-ffi = FFI()
-ffi.cdef("""
-    typedef struct {
-        void* data;
-        size_t size;
-    } CCircuit;
-    CCircuit generate_random_circuit(unsigned char, unsigned short, bool, bool, bool, bool, bool, bool, bool, bool);
-    bool circuit_is_none(CCircuit);
-""")
-
-C = ffi.dlopen("./target/debug/liblogic_expression_generator.dylib")
-circuit = C.generate_random_circuit(1, 5, True, True, True, True, True, True, True, True)
+circuit = logic_expression_generator.gen_random_circuit(2, 5, ["and", "or", "not"])
 print(circuit)
