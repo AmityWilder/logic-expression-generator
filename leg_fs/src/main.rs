@@ -3,7 +3,12 @@
 use clap::Parser;
 use logic_expression_generator::{jls::*, *};
 use serde::Serialize;
-use std::num::{NonZeroU8, NonZeroU16};
+use std::{
+    io::Write,
+    num::{NonZeroU8, NonZeroU16},
+    path::PathBuf,
+};
+use zip::write::SimpleFileOptions;
 
 #[derive(Debug, Parser)]
 #[command(version, about)]
@@ -19,6 +24,8 @@ struct Cli {
     words: bool,
     #[arg(short, long)]
     diagram: bool,
+    #[arg(short, long)]
+    zip: Option<PathBuf>,
 }
 
 #[derive(Debug, Serialize, Default)]
@@ -29,13 +36,11 @@ struct Output {
     diagram: Option<Diagram>,
 }
 
-fn main() {
+fn inner_main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Cli::parse();
     let ops = OpList::from_iter(args.operators);
-    let Some(circuit) = Circuit::generate_random(args.inputs, args.depth, ops) else {
-        eprintln!("cannot generate a circuit with the given combination of inputs and operators");
-        std::process::exit(1);
-    };
+    let circuit = Circuit::generate_random(args.inputs, args.depth, ops)
+        .ok_or("cannot generate a circuit with the given combination of inputs and operators")?;
     let mut output = Output::default();
     if args.tex || args.logic || args.words {
         let expr = circuit.to_boolean_expr();
@@ -49,16 +54,29 @@ fn main() {
             output.words = Some(expr.to_words(OpPrecedence::Top));
         }
     }
-    if args.diagram {
-        output.diagram = Some(circuit.to_diagram());
+    if args.diagram || args.zip.is_some() {
+        let diagram = circuit.to_diagram();
+        if let Some(zip_path) = args.zip {
+            let file = std::fs::File::create(&zip_path)?;
+            let mut stream = std::io::BufWriter::new(file);
+            let mut zip = zip::ZipWriter::new(&mut stream);
+            let options =
+                SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+            zip.start_file("JLSCircuit", options)?;
+            diagram.save(zip)?;
+            stream.flush()?;
+        }
+        if args.diagram {
+            output.diagram = Some(diagram);
+        }
     }
-    match serde_json::to_string(&output) {
-        Ok(s) => {
-            println!("{s}")
-        }
-        Err(e) => {
-            eprintln!("{e}");
-            std::process::exit(1);
-        }
+    println!("{}", serde_json::to_string(&output)?);
+    Ok(())
+}
+
+fn main() {
+    if let Err(e) = inner_main() {
+        eprintln!("{e}");
+        std::process::exit(1);
     }
 }

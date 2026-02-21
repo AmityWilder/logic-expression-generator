@@ -15,4 +15,3 @@ arrayvec = "0.7.6"
 # pyo3 = { version = "0.28.2", features = ["abi3-py38"] }
 rand = "0.10.0"
 serde = { version = "1.0.228", features = ["derive"] }
-zip = "8.1.0"

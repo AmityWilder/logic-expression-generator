@@ -1,10 +1,6 @@
-use std::{
-    collections::HashSet,
-    io::{BufWriter, Cursor},
-};
-
 use crate::{Circuit, Gate, VarName};
 use serde::{Serialize, ser::SerializeStructVariant};
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct Rectangle {
@@ -72,25 +68,21 @@ impl<'a> Serialize for OrderedElement<'a> {
             ElementData::NorGate => (6, "NorGate", 9),
             ElementData::XnorGate => (7, "XnorGate", 9),
             ElementData::InputPin { .. } => (8, "InputPin", 9),
-            ElementData::WireEnd { connect, wires } => (
-                9,
-                "WireEnd",
-                5 + if connect.is_some() { 2 } else { 0 } + wires.len(),
-            ),
+            ElementData::WireEnd { .. } => (9, "WireEnd", 8),
         };
         let mut elem = serializer.serialize_struct_variant("ELEMENT", index, variant, len)?;
         // element
-        elem.serialize_field("int id", &self.0)?;
-        elem.serialize_field("int x", &self.1.x)?;
-        elem.serialize_field("int y", &self.1.y)?;
-        elem.serialize_field("int width", &self.1.w)?;
-        elem.serialize_field("int height", &self.1.h)?;
+        elem.serialize_field("id", &self.0)?;
+        elem.serialize_field("x", &self.1.x)?;
+        elem.serialize_field("y", &self.1.y)?;
+        elem.serialize_field("width", &self.1.w)?;
+        elem.serialize_field("height", &self.1.h)?;
         match &self.1.data {
             ElementData::InputPin { name } => {
-                elem.serialize_field("String name", name)?;
-                elem.serialize_field("int bits", &1)?;
-                elem.serialize_field("int watch", &0)?;
-                elem.serialize_field("String orient", "RIGHT")?;
+                elem.serialize_field("name", name)?;
+                elem.serialize_field("bits", &1)?;
+                elem.serialize_field("watch", &0)?;
+                elem.serialize_field("orient", "RIGHT")?;
             }
 
             ElementData::DelayGate
@@ -114,27 +106,28 @@ impl<'a> Serialize for OrderedElement<'a> {
 
                     _ => unreachable!(),
                 };
-                elem.serialize_field("int bits", &1)?;
-                elem.serialize_field("int numInputs", &num_inputs)?;
-                elem.serialize_field("String orientation", "right")?;
-                elem.serialize_field("int delay", &prop_delay)?;
+                elem.serialize_field("bits", &1)?;
+                elem.serialize_field("numInputs", &num_inputs)?;
+                elem.serialize_field("orientation", "right")?;
+                elem.serialize_field("delay", &prop_delay)?;
             }
 
             ElementData::WireEnd { connect, wires } => {
                 if let Some(Connector { put, attach }) = connect {
                     elem.serialize_field(
-                        "String put",
+                        "put",
                         match put {
                             Put::Input0 => "input0",
                             Put::Input1 => "input1",
                             Put::Output => "output",
                         },
                     )?;
-                    elem.serialize_field("ref attach", attach)?;
+                    elem.serialize_field("attach", attach)?;
+                } else {
+                    elem.skip_field("put")?;
+                    elem.skip_field("attach")?;
                 }
-                for wire in wires {
-                    elem.serialize_field("ref wire", wire)?;
-                }
+                elem.serialize_field("wires", wires)?;
             }
         }
         elem.end()
@@ -147,12 +140,71 @@ pub struct Diagram {
 }
 
 impl Diagram {
-    pub fn write_to<W>(&self, out: &mut W)
+    pub fn save<Writer>(&self, mut output: Writer) -> std::io::Result<()>
     where
-        W: std::io::Write,
+        Writer: std::io::Write,
     {
-        // let mut buffer = zip::ZipWriter::new(Cursor::new(Vec::new()));
-        todo!()
+        writeln!(output, "CIRCUIT example")?;
+        for (id, Element { x, y, w, h, data }) in self.elements.iter().enumerate() {
+            use ElementData::*;
+            let typename = match data {
+                InputPin { .. } => "InputPin",
+                DelayGate => "DelayGate",
+                AndGate => "AndGate",
+                OrGate => "OrGate",
+                XorGate => "XorGate",
+                NotGate => "NotGate",
+                NandGate => "NandGate",
+                NorGate => "NorGate",
+                XnorGate => "XnorGate",
+                WireEnd { .. } => "WireEnd",
+            };
+            writeln!(output, "ELEMENT {typename}")?;
+            writeln!(output, " int id {id}")?;
+            writeln!(output, " int x {x}")?;
+            writeln!(output, " int y {y}")?;
+            writeln!(output, " int width {w}")?;
+            writeln!(output, " int height {h}")?;
+            match data {
+                InputPin { name } => {
+                    writeln!(output, "String name \"{name}\"")?; // VarName should be guaranteed sanitized
+                    writeln!(output, "int bits 1")?;
+                    writeln!(output, "int watch 0")?;
+                    writeln!(output, "String orient \"RIGHT\"")?;
+                }
+
+                DelayGate | AndGate | OrGate | XorGate | NotGate | NandGate | NorGate
+                | XnorGate => {
+                    let (num_inputs, prop_delay) = match data {
+                        DelayGate | NotGate => (1, 5),
+                        AndGate | OrGate | XorGate | NandGate | NorGate | XnorGate => (2, 10),
+                        _ => unreachable!(),
+                    };
+                    writeln!(output, "int bits 1")?;
+                    writeln!(output, "int numInputs {num_inputs}")?;
+                    writeln!(output, "String orientation \"right\"")?;
+                    writeln!(output, "int delay {prop_delay}")?;
+                }
+
+                WireEnd { connect, wires } => {
+                    if let Some(Connector { put, attach }) = connect {
+                        let put = match put {
+                            Put::Input0 => "input0",
+                            Put::Input1 => "input1",
+                            Put::Output => "output",
+                        };
+                        writeln!(output, "String put \"{put}\"")?;
+                        writeln!(output, "ref attach {attach}")?;
+                    }
+                    for wire in wires {
+                        writeln!(output, "ref wire {wire}")?;
+                    }
+                }
+            }
+            writeln!(output, "END")?;
+        }
+        writeln!(output, "ENDCIRCUIT")?;
+        Ok(())
     }
 }
 
