@@ -1,7 +1,7 @@
 #![deny(clippy::undocumented_unsafe_blocks, clippy::missing_safety_doc)]
 
 use clap::Parser;
-use logic_expression_generator::*;
+use logic_expression_generator::{jls::*, *};
 use serde::Serialize;
 use std::num::{NonZeroU8, NonZeroU16};
 
@@ -53,7 +53,9 @@ fn main() {
         output.diagram = Some(circuit.to_diagram());
     }
     match serde_json::to_string(&output) {
-        Ok(s) => println!("{s}"),
+        Ok(s) => {
+            println!("{s}")
+        }
         Err(e) => {
             eprintln!("{e}");
             std::process::exit(1);

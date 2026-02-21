@@ -5,6 +5,10 @@ use rand::prelude::*;
 use serde::Serialize;
 use std::num::{NonZeroU8, NonZeroU16};
 
+use crate::jls::Diagram;
+
+pub mod jls;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Operator {
     #[default]
@@ -480,7 +484,7 @@ pub enum Gate {
     Nand(u16, u16),
     Nor(u16, u16),
     Xnor(u16, u16),
-    Variable(VarName),
+    Input(VarName),
 }
 
 impl Gate {
@@ -493,7 +497,7 @@ impl Gate {
             | Self::Nand(a, b)
             | Self::Nor(a, b)
             | Self::Xnor(a, b) => Some(if a < b { b } else { a }),
-            Self::Variable(_) => None,
+            Self::Input(_) => None,
         }
     }
 
@@ -506,23 +510,9 @@ impl Gate {
             | Self::Nand(a, b)
             | Self::Nor(a, b)
             | Self::Xnor(a, b) => Some(if a < b { a } else { b }),
-            Self::Variable(_) => None,
+            Self::Input(_) => None,
         }
     }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize)]
-pub struct Rectangle {
-    x: u32,
-    y: u32,
-    w: u32,
-    h: u32,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
-pub struct Element {
-    pub rect: Rectangle,
-    pub gate: Gate,
 }
 
 impl Gate {
@@ -535,7 +525,7 @@ impl Gate {
             | Gate::Nand(a, b)
             | Gate::Nor(a, b)
             | Gate::Xnor(a, b) => (a as usize) < gate_count && (b as usize) < gate_count,
-            Gate::Variable(_) => true,
+            Gate::Input(_) => true,
         }
     }
 }
@@ -612,12 +602,12 @@ impl Circuit {
                 NON_SUBSCRIPT_NAMES
                     .iter()
                     .take(input_count.get() as usize)
-                    .map(|&v| Gate::Variable(VarName(-(v as i8)))),
+                    .map(|&v| Gate::Input(VarName(-(v as i8)))),
             );
         } else {
             circuit
                 .gates
-                .extend((0..input_count.get()).map(|v| Gate::Variable(VarName(v as i8))));
+                .extend((0..input_count.get()).map(|v| Gate::Input(VarName(v as i8))));
         };
 
         for i in input_count.get() as u16..input_count.get() as u16 + depth.get() {
@@ -672,7 +662,7 @@ impl Circuit {
                 Gate::Nand(a, b) => convert(src, a).nand(convert(src, b)),
                 Gate::Nor(a, b) => convert(src, a).nor(convert(src, b)),
                 Gate::Xnor(a, b) => convert(src, a).xnor(convert(src, b)),
-                Gate::Variable(v) => BooleanExpr::Variable(v),
+                Gate::Input(v) => BooleanExpr::Variable(v),
             }
         }
 
@@ -686,53 +676,10 @@ impl Circuit {
         convert(self.gates.as_slice(), root)
     }
 
+    #[inline]
     pub fn to_diagram(&self) -> Diagram {
-        let mut elements = Vec::with_capacity(self.gates.len());
-        for (row, col, gate) in self
-            .gates
-            .chunk_by(|a, b| a.max_input() == b.max_input())
-            .enumerate()
-            .flat_map(|(i, chunk)| {
-                std::iter::repeat(
-                    u32::try_from(i)
-                        .expect("circuit should never exceed u16::MAX and u32::MAX > u16::MAX"),
-                )
-                .zip(chunk.iter().copied())
-                .enumerate()
-                .map(|(row, (col, gate))| {
-                    (
-                        u32::try_from(row)
-                            .expect("circuit should never exceed u16::MAX and u32::MAX > u16::MAX"),
-                        col,
-                        gate,
-                    )
-                })
-            })
-        {
-            const INPUT_WIDTH: u32 = 5;
-            const INPUT_HEIGHT: u32 = 1;
-            const GATE_WIDTH: u32 = 3;
-            const GATE_HEIGHT: u32 = 3;
-            const ELEMENT_GAP: u32 = 2;
-
-            let x = INPUT_WIDTH + (ELEMENT_GAP + GATE_WIDTH) * col;
-            let y = (ELEMENT_GAP + GATE_HEIGHT) * row;
-            let (w, h) = match gate {
-                Gate::Variable(_) => (INPUT_WIDTH, INPUT_HEIGHT),
-                _ => (GATE_WIDTH, GATE_HEIGHT),
-            };
-            elements.push(Element {
-                rect: Rectangle { x, y, w, h },
-                gate,
-            });
-        }
-        Diagram { elements }
+        Diagram::from_circuit(self)
     }
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct Diagram {
-    elements: Vec<Element>,
 }
 
 #[cfg(test)]
@@ -752,7 +699,7 @@ mod tests {
         let a = VarName::from_char('a');
         assert_eq!(
             Circuit {
-                gates: Vec::from([Gate::Variable(a)])
+                gates: Vec::from([Gate::Input(a)])
             }
             .to_boolean_expr(),
             BooleanExpr::Variable(a)
@@ -764,7 +711,7 @@ mod tests {
         let a = VarName::from_char('a');
         assert_eq!(
             Circuit {
-                gates: Vec::from([Gate::Variable(a), Gate::Buffer(0)])
+                gates: Vec::from([Gate::Input(a), Gate::Buffer(0)])
             }
             .to_boolean_expr(),
             BooleanExpr::Variable(a).buffer()
@@ -777,7 +724,7 @@ mod tests {
         let b = VarName::from_char('b');
         assert_eq!(
             Circuit {
-                gates: Vec::from([Gate::Variable(a), Gate::Variable(b), Gate::And(0, 1),])
+                gates: Vec::from([Gate::Input(a), Gate::Input(b), Gate::And(0, 1),])
             }
             .to_boolean_expr(),
             BooleanExpr::Variable(a).and(BooleanExpr::Variable(b))
@@ -791,8 +738,8 @@ mod tests {
         assert_eq!(
             Circuit {
                 gates: Vec::from([
-                    Gate::Variable(a),
-                    Gate::Variable(b),
+                    Gate::Input(a),
+                    Gate::Input(b),
                     Gate::And(0, 1),
                     Gate::Nor(0, 2)
                 ])
