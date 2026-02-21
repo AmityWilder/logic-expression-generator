@@ -610,12 +610,26 @@ impl Circuit {
                 .extend((0..input_count.get()).map(|v| Gate::Input(VarName(v as i8))));
         };
 
-        for i in input_count.get() as u16..input_count.get() as u16 + depth.get() {
+        let n = input_count.get() as u16;
+        for i in (0..depth.get()).map(|i| i + n) {
             let gate =
                 if i >= 2 {
                     let [a, b] = rand::seq::index::sample_array::<_, 2>(&mut rng, i as usize)
                         .expect("should be guaranteed by i>=2");
                     let [a, b] = [a as u16, b as u16];
+                    let (a, b) = if match (
+                        circuit.gates[a as usize].max_input(),
+                        circuit.gates[b as usize].max_input(),
+                    ) {
+                        (None, None) => a < b,
+                        (None, Some(_)) => true,
+                        (Some(_), None) => false,
+                        (Some(c), Some(d)) => c < d,
+                    } {
+                        (a, b)
+                    } else {
+                        (b, a)
+                    };
                     match ops
                         .choose(&mut rng)
                         .expect("should have exited if no operators")
