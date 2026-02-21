@@ -151,6 +151,7 @@ pub struct Diagram {
 }
 
 impl Diagram {
+    #[must_use]
     pub fn from_circuit(circ: &Circuit) -> Self {
         const WIRE_END_RADIUS: i32 = 6;
         const GRID_SIZE: i32 = 2 * WIRE_END_RADIUS;
@@ -168,16 +169,17 @@ impl Diagram {
         // output element id = 2*circuit id + 1
         // input0/1 element ids = (arbitrary for now)
 
+        circ.memoize_all_depths();
         for (i, row, col, gate) in circ
             .gates
-            .chunk_by(|a, b| a.max_input() == b.max_input())
+            .chunk_by(|(_, a_depth), (_, b_depth)| a_depth == b_depth)
             .enumerate()
             .flat_map(|(i, chunk)| {
                 std::iter::repeat(
                     i32::try_from(i)
                         .expect("circuit should never exceed u16::MAX elements, and i32::MAX > u16::MAX"),
                 )
-                .zip(chunk.iter().copied())
+                .zip(chunk.iter().map(|(gate, _)| gate).copied())
                 .enumerate()
                 .map(|(row, (col, gate))| {
                     (
@@ -235,7 +237,7 @@ impl Diagram {
         let mut wire_id = 2 * u32::try_from(circ.gates.len())
             .expect("circuit should never exceed u16::MAX elements, and u32::MAX > u16::MAX");
 
-        for (i, gate) in circ.gates.iter().enumerate().map(|(i, gate)| {
+        for (i, (gate, _depth)) in circ.gates.iter().enumerate().map(|(i, gate)| {
             (
                 u32::try_from(i).expect(
                     "circuit should never exceed u16::MAX elements, and u32::MAX > u16::MAX",

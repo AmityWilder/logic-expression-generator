@@ -3,7 +3,10 @@
 use arrayvec::ArrayVec;
 use rand::prelude::*;
 use serde::Serialize;
-use std::num::{NonZeroU8, NonZeroU16};
+use std::{
+    cell::OnceCell,
+    num::{NonZeroU8, NonZeroU16},
+};
 
 use crate::jls::Diagram;
 
@@ -536,10 +539,50 @@ impl Gate {
 #[derive(Debug, Clone)]
 pub struct Circuit {
     /// Inputs are all first.
-    gates: Vec<Gate>,
+    gates: Vec<(Gate, OnceCell<u16>)>,
+}
+
+impl<T: IntoIterator<Item = Gate>> From<T> for Circuit {
+    fn from(value: T) -> Self {
+        Self {
+            gates: value
+                .into_iter()
+                .zip(std::iter::repeat(OnceCell::new()))
+                .collect(),
+        }
+    }
 }
 
 impl Circuit {
+    /// Recursively calculates the depth of the provided gate without mutating
+    #[must_use]
+    pub fn depth_of(&self, gate: u16) -> u16 {
+        let (gate, depth) = &self.gates[gate as usize];
+        *depth.get_or_init(|| match *gate {
+            Gate::Buffer(a) | Gate::Not(a) => self.depth_of(a) + 1,
+
+            Gate::And(a, b)
+            | Gate::Or(a, b)
+            | Gate::Xor(a, b)
+            | Gate::Nand(a, b)
+            | Gate::Nor(a, b)
+            | Gate::Xnor(a, b) => self.depth_of(a).max(self.depth_of(b)) + 1,
+
+            Gate::Input(_) => 0,
+        })
+    }
+
+    pub fn memoize_all_depths(&self) {
+        while let Some(i) = self
+            .gates
+            .iter()
+            .rev()
+            .position(|(_, depth)| depth.get().is_none())
+        {
+            _ = self.depth_of(u16::try_from(i).expect("circuit should not exceed u16::MAX gates"));
+        }
+    }
+
     /// Returns the index of the newly added gate.
     ///
     /// Element is not added on error.
@@ -547,7 +590,7 @@ impl Circuit {
         if gate.is_valid(self.gates.len()) {
             u16::try_from(self.gates.len())
                 .map_err(|_| AddGateError::OutOfIds)
-                .inspect(|_| self.gates.push(gate))
+                .inspect(|_| self.gates.push((gate, OnceCell::new())))
         } else {
             Err(AddGateError::IndexOutOfBounds)
         }
@@ -567,7 +610,12 @@ impl Circuit {
             .ok_or(AddGateError::OutOfIds)?;
         if gates.iter().enumerate().all(|(i, gate)| gate.is_valid(i)) {
             self.gates.reserve(gates.len());
-            self.gates.extend(gates);
+            self.gates.extend(
+                gates
+                    .iter()
+                    .copied()
+                    .zip(std::iter::repeat(OnceCell::new())),
+            );
             Ok(start..end)
         } else {
             Err(AddGateError::IndexOutOfBounds)
@@ -578,6 +626,7 @@ impl Circuit {
     /// using only `operators` operators.
     ///
     /// Returns [`None`] if `operators` is empty, or includes no single-input gates in a single-input circuit.
+    #[must_use]
     pub fn generate_random(
         input_count: NonZeroU8,
         depth: NonZeroU16,
@@ -592,8 +641,9 @@ impl Circuit {
 
         let mut rng = rand::rng();
 
+        let capacity = input_count.get() as usize + depth.get() as usize;
         let mut circuit = Self {
-            gates: Vec::with_capacity(input_count.get() as usize + depth.get() as usize),
+            gates: Vec::with_capacity(capacity),
         };
 
         const NON_SUBSCRIPT_NAMES: &[u8] = b"xyzw";
@@ -602,12 +652,15 @@ impl Circuit {
                 NON_SUBSCRIPT_NAMES
                     .iter()
                     .take(input_count.get() as usize)
-                    .map(|&v| Gate::Input(VarName(-(v as i8)))),
+                    .map(|&v| Gate::Input(VarName(-(v as i8))))
+                    .zip(std::iter::repeat(OnceCell::new())),
             );
         } else {
-            circuit
-                .gates
-                .extend((0..input_count.get()).map(|v| Gate::Input(VarName(v as i8))));
+            circuit.gates.extend(
+                (0..input_count.get())
+                    .map(|v| Gate::Input(VarName(v as i8)))
+                    .zip(std::iter::repeat(OnceCell::new())),
+            );
         };
 
         let n = input_count.get() as u16;
@@ -617,15 +670,7 @@ impl Circuit {
                     let [a, b] = rand::seq::index::sample_array::<_, 2>(&mut rng, i as usize)
                         .expect("should be guaranteed by i>=2");
                     let [a, b] = [a as u16, b as u16];
-                    let (a, b) = if match (
-                        circuit.gates[a as usize].max_input(),
-                        circuit.gates[b as usize].max_input(),
-                    ) {
-                        (None, None) => a < b,
-                        (None, Some(_)) => true,
-                        (Some(_), None) => false,
-                        (Some(c), Some(d)) => c < d,
-                    } {
+                    let (a, b) = if (circuit.depth_of(a), a) < (circuit.depth_of(b), b) {
                         (a, b)
                     } else {
                         (b, a)
@@ -660,37 +705,49 @@ impl Circuit {
         Some(circuit)
     }
 
-    /// Convert a circuit to a [`BooleanExpr`]
-    ///
-    /// Returns [`None`] if circuit is empty
-    pub fn to_boolean_expr(&self) -> BooleanExpr {
+    #[must_use]
+    fn bool_expr_of(&self, idx: u16) -> BooleanExpr {
+        match self.gates[idx as usize].0 {
+            Gate::Buffer(x) => self.bool_expr_of(x).buffer(),
+            Gate::And(a, b) => self.bool_expr_of(a).and(self.bool_expr_of(b)),
+            Gate::Or(a, b) => self.bool_expr_of(a).or(self.bool_expr_of(b)),
+            Gate::Xor(a, b) => self.bool_expr_of(a).xor(self.bool_expr_of(b)),
+            Gate::Not(x) => self.bool_expr_of(x).not(),
+            Gate::Nand(a, b) => self.bool_expr_of(a).nand(self.bool_expr_of(b)),
+            Gate::Nor(a, b) => self.bool_expr_of(a).nor(self.bool_expr_of(b)),
+            Gate::Xnor(a, b) => self.bool_expr_of(a).xnor(self.bool_expr_of(b)),
+            Gate::Input(v) => BooleanExpr::Variable(v),
+        }
+    }
+
+    /// Convert a circuit to a collection of [`BooleanExpr`]s for each output
+    #[must_use]
+    pub fn to_boolean_expr(&self) -> Vec<BooleanExpr> {
         // Assumes no gate connects to a gate at a greater index than its own.
 
-        fn convert(src: &[Gate], idx: u16) -> BooleanExpr {
-            match src[idx as usize] {
-                Gate::Buffer(x) => convert(src, x).buffer(),
-                Gate::And(a, b) => convert(src, a).and(convert(src, b)),
-                Gate::Or(a, b) => convert(src, a).or(convert(src, b)),
-                Gate::Xor(a, b) => convert(src, a).xor(convert(src, b)),
-                Gate::Not(x) => convert(src, x).not(),
-                Gate::Nand(a, b) => convert(src, a).nand(convert(src, b)),
-                Gate::Nor(a, b) => convert(src, a).nor(convert(src, b)),
-                Gate::Xnor(a, b) => convert(src, a).xnor(convert(src, b)),
-                Gate::Input(v) => BooleanExpr::Variable(v),
-            }
+        // note: almost certainly the answer will be closer to the end, but I'm not sure how to find it yet
+        let num_gates =
+            u16::try_from(self.gates.len()).expect("circuit should not exceed u16::MAX gates");
+        let min_without_output = (0..num_gates)
+            .map(|gate| self.depth_of(gate))
+            .max() // max with output
+            .and_then(|n| n.checked_add(1));
+        if let Some(min_without_output) = min_without_output {
+            (min_without_output
+                ..self
+                    .gates
+                    .len()
+                    .try_into()
+                    .expect("circuit should not exceed u16::MAX gates"))
+                .map(|root| self.bool_expr_of(root))
+                .collect()
+        } else {
+            Vec::new()
         }
-
-        let root = u16::try_from(
-            self.gates
-                .len()
-                .checked_sub(1)
-                .expect("NonZero inputs and lack of removal should guarantee non-empty circuits"),
-        )
-        .expect("circuit should not exceed u16::MAX elements");
-        convert(self.gates.as_slice(), root)
     }
 
     #[inline]
+    #[must_use]
     pub fn to_diagram(&self) -> Diagram {
         Diagram::from_circuit(self)
     }
@@ -712,11 +769,8 @@ mod tests {
     fn test_var_to_boolean_expr() {
         let a = VarName::from_char('a');
         assert_eq!(
-            Circuit {
-                gates: Vec::from([Gate::Input(a)])
-            }
-            .to_boolean_expr(),
-            BooleanExpr::Variable(a)
+            Circuit::from([Gate::Input(a)]).to_boolean_expr(),
+            &[BooleanExpr::Variable(a)]
         );
     }
 
@@ -724,11 +778,8 @@ mod tests {
     fn test_buffer_to_boolean_expr() {
         let a = VarName::from_char('a');
         assert_eq!(
-            Circuit {
-                gates: Vec::from([Gate::Input(a), Gate::Buffer(0)])
-            }
-            .to_boolean_expr(),
-            BooleanExpr::Variable(a).buffer()
+            Circuit::from([Gate::Input(a), Gate::Buffer(0)]).to_boolean_expr(),
+            &[BooleanExpr::Variable(a).buffer()]
         );
     }
 
@@ -737,11 +788,8 @@ mod tests {
         let a = VarName::from_char('a');
         let b = VarName::from_char('b');
         assert_eq!(
-            Circuit {
-                gates: Vec::from([Gate::Input(a), Gate::Input(b), Gate::And(0, 1),])
-            }
-            .to_boolean_expr(),
-            BooleanExpr::Variable(a).and(BooleanExpr::Variable(b))
+            Circuit::from([Gate::Input(a), Gate::Input(b), Gate::And(0, 1),]).to_boolean_expr(),
+            [BooleanExpr::Variable(a).and(BooleanExpr::Variable(b))]
         );
     }
 
@@ -750,16 +798,17 @@ mod tests {
         let a = VarName::from_char('a');
         let b = VarName::from_char('b');
         assert_eq!(
-            Circuit {
-                gates: Vec::from([
-                    Gate::Input(a),
-                    Gate::Input(b),
-                    Gate::And(0, 1),
-                    Gate::Nor(0, 2)
-                ])
-            }
+            Circuit::from([
+                Gate::Input(a),
+                Gate::Input(b),
+                Gate::And(0, 1),
+                Gate::Nor(0, 2)
+            ])
             .to_boolean_expr(),
-            BooleanExpr::Variable(a).nor(BooleanExpr::Variable(a).and(BooleanExpr::Variable(b)))
+            [
+                BooleanExpr::Variable(a)
+                    .nor(BooleanExpr::Variable(a).and(BooleanExpr::Variable(b)))
+            ]
         );
     }
 
@@ -825,8 +874,17 @@ mod tests {
         let expr = circ.to_boolean_expr();
         println!("{expr:?}");
         println!();
-        println!("LaTeX: {}", expr.to_tex(Default::default()));
-        println!("logic: {}", expr.to_logic(Default::default()));
-        println!("words: {}", expr.to_words(Default::default()));
+        println!(
+            "LaTeX: {:?}",
+            expr.iter().map(|expr| expr.to_tex(Default::default()))
+        );
+        println!(
+            "logic: {:?}",
+            expr.iter().map(|expr| expr.to_logic(Default::default()))
+        );
+        println!(
+            "words: {:?}",
+            expr.iter().map(|expr| expr.to_words(Default::default()))
+        );
     }
 }

@@ -52,13 +52,13 @@ struct Cli {
 #[derive(Debug, Serialize, Default)]
 struct Output {
     #[serde(skip_serializing_if = "Option::is_none")]
-    tex: Option<String>,
+    tex: Option<Vec<String>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    logic: Option<String>,
+    logic: Option<Vec<String>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    words: Option<String>,
+    words: Option<Vec<String>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     diagram: Option<Diagram>,
@@ -73,13 +73,13 @@ fn inner_main() -> Result<(), Box<dyn std::error::Error>> {
     if args.tex || args.logic || args.words {
         let expr = circuit.to_boolean_expr();
         if args.tex {
-            output.tex = Some(expr.to_tex(OpPrecedence::Top));
+            output.tex = Some(expr.iter().map(|e| e.to_tex(OpPrecedence::Top)).collect());
         }
         if args.logic {
-            output.logic = Some(expr.to_logic(OpPrecedence::Top));
+            output.logic = Some(expr.iter().map(|e| e.to_logic(OpPrecedence::Top)).collect());
         }
         if args.words {
-            output.words = Some(expr.to_words(OpPrecedence::Top));
+            output.words = Some(expr.iter().map(|e| e.to_words(OpPrecedence::Top)).collect());
         }
     }
     if args.diagram || args.jls.is_some() {
@@ -105,7 +105,7 @@ fn inner_main() -> Result<(), Box<dyn std::error::Error>> {
             output.diagram = Some(diagram);
         }
     }
-    println!("{}", serde_json::to_string(&output)?);
+    serde_json::to_writer_pretty(std::io::stdout(), &output)?;
     Ok(())
 }
 
