@@ -2,13 +2,8 @@ use crate::{Circuit, Gate, VarName};
 use serde::{Serialize, ser::SerializeStructVariant};
 use std::collections::HashSet;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub struct Rectangle {
-    x: u32,
-    y: u32,
-    w: u32,
-    h: u32,
-}
+// Note that the purpose is not to have JLS's exact in-memory layout, but simply
+// to replicate its file structure enough to open these files within stock JLS.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Put {
@@ -20,7 +15,7 @@ pub enum Put {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Connector {
     put: Put,
-    attach: u16,
+    attach: u32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -38,8 +33,24 @@ pub enum ElementData {
     XnorGate,
     WireEnd {
         connect: Option<Connector>,
-        wires: HashSet<u16>,
+        wires: HashSet<u32>,
     },
+}
+
+impl From<Gate> for ElementData {
+    fn from(value: Gate) -> Self {
+        match value {
+            Gate::Buffer(_) => ElementData::DelayGate,
+            Gate::And(_, _) => ElementData::AndGate,
+            Gate::Or(_, _) => ElementData::OrGate,
+            Gate::Xor(_, _) => ElementData::XorGate,
+            Gate::Not(_) => ElementData::NotGate,
+            Gate::Nand(_, _) => ElementData::NandGate,
+            Gate::Nor(_, _) => ElementData::NorGate,
+            Gate::Xnor(_, _) => ElementData::XnorGate,
+            Gate::Input(name) => ElementData::InputPin { name },
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -51,7 +62,7 @@ pub struct Element {
     pub data: ElementData,
 }
 
-pub struct OrderedElement<'a>(u16, &'a Element);
+pub struct OrderedElement<'a>(u32, &'a Element);
 
 impl<'a> Serialize for OrderedElement<'a> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -140,11 +151,204 @@ pub struct Diagram {
 }
 
 impl Diagram {
-    pub fn save<Writer>(&self, mut output: Writer) -> std::io::Result<()>
+    pub fn from_circuit(circ: &Circuit) -> Self {
+        const WIRE_END_RADIUS: i32 = 6;
+        const GRID_SIZE: i32 = 2 * WIRE_END_RADIUS;
+        const INPUT_WIDTH: i32 = 3 * GRID_SIZE;
+        const INPUT_HEIGHT: i32 = 2 * GRID_SIZE;
+        const GATE_WIDTH: i32 = 4 * GRID_SIZE;
+        const GATE_HEIGHT: i32 = 2 * GRID_SIZE;
+        const ELEMENT_GAP: i32 = 2 * GRID_SIZE;
+
+        let mut elements = Vec::with_capacity(circ.gates.len() * 3); // `* 3` to account for typical ratio of WireEnds per non-WireEnd
+
+        // should guarantee order as follows:
+        // {{gate|input}{output}}...{[input0][input1]}...
+        // gate/input element id = 2*circuit id
+        // output element id = 2*circuit id + 1
+        // input0/1 element ids = (arbitrary for now)
+
+        for (i, row, col, gate) in circ
+            .gates
+            .chunk_by(|a, b| a.max_input() == b.max_input())
+            .enumerate()
+            .flat_map(|(i, chunk)| {
+                std::iter::repeat(
+                    i32::try_from(i)
+                        .expect("circuit should never exceed u16::MAX elements, and i32::MAX > u16::MAX"),
+                )
+                .zip(chunk.iter().copied())
+                .enumerate()
+                .map(|(row, (col, gate))| {
+                    (
+                        i32::try_from(row)
+                            .expect("circuit should never exceed u16::MAX elements, and i32::MAX > u16::MAX"),
+                        col,
+                        gate,
+                    )
+                })
+            })
+            .enumerate()
+            .map(|(i, (row, col, gate))| {
+                (
+                    u32::try_from(i)
+                        .expect("circuit should never exceed u16::MAX elements, and u32::MAX > u16::MAX"),
+                    row,
+                    col,
+                    gate,
+                )
+            })
+        {
+            let x = (ELEMENT_GAP + GATE_WIDTH) * col + ELEMENT_GAP;
+            let y = (ELEMENT_GAP + GATE_HEIGHT) * row + ELEMENT_GAP;
+            let (w, h) = if matches!(gate, Gate::Input(_)) {
+                (INPUT_WIDTH, INPUT_HEIGHT)
+            } else {
+                (GATE_WIDTH, GATE_HEIGHT)
+            };
+
+            // element (2*id)
+            elements.push(Element {
+                x,
+                y,
+                w,
+                h,
+                data: ElementData::from(gate),
+            });
+
+            // output WireEnd (2*id + 1)
+            elements.push(Element {
+                x: x + w,
+                y: y + h / 2,
+                w: WIRE_END_RADIUS,
+                h: WIRE_END_RADIUS,
+                data: ElementData::WireEnd {
+                    connect: Some(Connector {
+                        put: Put::Output,
+                        attach: 2*i,
+                    }),
+                    wires: HashSet::new(),
+                },
+            });
+        }
+
+        let mut wire_id = 2 * u32::try_from(circ.gates.len())
+            .expect("circuit should never exceed u16::MAX elements, and u32::MAX > u16::MAX");
+
+        for (i, gate) in circ.gates.iter().enumerate().map(|(i, gate)| {
+            (
+                u32::try_from(i).expect(
+                    "circuit should never exceed u16::MAX elements, and u32::MAX > u16::MAX",
+                ),
+                gate,
+            )
+        }) {
+            let attach = 2 * i;
+            let el = &elements[attach as usize];
+            let x = el.x;
+            let y = el.y;
+
+            // inputs
+
+            match gate {
+                &(Gate::Buffer(a) | Gate::Not(a)) => {
+                    let a_wire_id = 2 * a as u32 + 1;
+                    // create wire from source
+                    elements.push(Element {
+                        x,
+                        y: y + GATE_HEIGHT / 2,
+                        w: WIRE_END_RADIUS,
+                        h: WIRE_END_RADIUS,
+                        data: ElementData::WireEnd {
+                            connect: Some(Connector {
+                                put: Put::Input0,
+                                attach,
+                            }),
+                            wires: HashSet::from([a_wire_id]),
+                        },
+                    });
+                    // add that wire to source
+                    if let ElementData::WireEnd { wires, .. } =
+                        &mut elements[a_wire_id as usize].data
+                    {
+                        wires.insert(wire_id);
+                    } else {
+                        panic!("should be guaranteed by insertion order");
+                    }
+                    wire_id += 1;
+                }
+
+                &(Gate::And(a, b)
+                | Gate::Or(a, b)
+                | Gate::Xor(a, b)
+                | Gate::Nand(a, b)
+                | Gate::Nor(a, b)
+                | Gate::Xnor(a, b)) => {
+                    let a_wire_id = 2 * a as u32 + 1;
+                    // create wire from source
+                    elements.push(Element {
+                        x,
+                        y,
+                        w: WIRE_END_RADIUS,
+                        h: WIRE_END_RADIUS,
+                        data: ElementData::WireEnd {
+                            connect: Some(Connector {
+                                put: Put::Input0,
+                                attach,
+                            }),
+                            wires: HashSet::from([a_wire_id]),
+                        },
+                    });
+                    // add that wire to source
+                    if let ElementData::WireEnd { wires, .. } =
+                        &mut elements[a_wire_id as usize].data
+                    {
+                        wires.insert(wire_id);
+                    } else {
+                        panic!("should be guaranteed by insertion order");
+                    }
+                    wire_id += 1;
+
+                    let b_wire_id = 2 * b as u32 + 1;
+                    // create wire from source
+                    elements.push(Element {
+                        x,
+                        y: y + GATE_HEIGHT,
+                        w: WIRE_END_RADIUS,
+                        h: WIRE_END_RADIUS,
+                        data: ElementData::WireEnd {
+                            connect: Some(Connector {
+                                put: Put::Input1,
+                                attach,
+                            }),
+                            wires: HashSet::from([b_wire_id]),
+                        },
+                    });
+                    // add that wire to source
+                    if let ElementData::WireEnd { wires, .. } =
+                        &mut elements[b_wire_id as usize].data
+                    {
+                        wires.insert(wire_id);
+                    } else {
+                        panic!("should be guaranteed by insertion order");
+                    }
+                    wire_id += 1;
+                }
+
+                Gate::Input(_) => {
+                    // do nothing
+                }
+            }
+        }
+        Diagram { elements }
+    }
+
+    pub fn save<W, S>(&self, mut output: W, name: S) -> std::io::Result<()>
     where
-        Writer: std::io::Write,
+        W: std::io::Write,
+        S: std::fmt::Display,
     {
-        writeln!(output, "CIRCUIT example")?;
+        writeln!(output, "CIRCUIT {name}")?;
         for (id, Element { x, y, w, h, data }) in self.elements.iter().enumerate() {
             use ElementData::*;
             let typename = match data {
@@ -167,10 +371,10 @@ impl Diagram {
             writeln!(output, " int height {h}")?;
             match data {
                 InputPin { name } => {
-                    writeln!(output, "String name \"{name}\"")?; // VarName should be guaranteed sanitized
-                    writeln!(output, "int bits 1")?;
-                    writeln!(output, "int watch 0")?;
-                    writeln!(output, "String orient \"RIGHT\"")?;
+                    writeln!(output, " String name \"{name}\"")?; // VarName should be guaranteed sanitized
+                    writeln!(output, " int bits 1")?;
+                    writeln!(output, " int watch 0")?;
+                    writeln!(output, " String orient \"RIGHT\"")?;
                 }
 
                 DelayGate | AndGate | OrGate | XorGate | NotGate | NandGate | NorGate
@@ -180,10 +384,10 @@ impl Diagram {
                         AndGate | OrGate | XorGate | NandGate | NorGate | XnorGate => (2, 10),
                         _ => unreachable!(),
                     };
-                    writeln!(output, "int bits 1")?;
-                    writeln!(output, "int numInputs {num_inputs}")?;
-                    writeln!(output, "String orientation \"right\"")?;
-                    writeln!(output, "int delay {prop_delay}")?;
+                    writeln!(output, " int bits 1")?;
+                    writeln!(output, " int numInputs {num_inputs}")?;
+                    writeln!(output, " String orientation \"right\"")?;
+                    writeln!(output, " int delay {prop_delay}")?;
                 }
 
                 WireEnd { connect, wires } => {
@@ -193,11 +397,11 @@ impl Diagram {
                             Put::Input1 => "input1",
                             Put::Output => "output",
                         };
-                        writeln!(output, "String put \"{put}\"")?;
-                        writeln!(output, "ref attach {attach}")?;
+                        writeln!(output, " String put \"{put}\"")?;
+                        writeln!(output, " ref attach {attach}")?;
                     }
                     for wire in wires {
-                        writeln!(output, "ref wire {wire}")?;
+                        writeln!(output, " ref wire {wire}")?;
                     }
                 }
             }
@@ -216,68 +420,9 @@ impl Serialize for Diagram {
         serializer.collect_seq(self.elements.iter().enumerate().map(|(id, element)| {
             OrderedElement(
                 id.try_into()
-                    .expect("circuit should not exceed u16::MAX elements"),
+                    .expect("circuit should not exceed u16::MAX elements, and u32::MAX > u16::MAX"),
                 element,
             )
         }))
-    }
-}
-
-impl Diagram {
-    pub fn from_circuit(circ: &Circuit) -> Self {
-        let mut elements = Vec::with_capacity(circ.gates.len() * 3); // `* 3` to account for typical ratio of WireEnds per non-WireEnd
-        for (row, col, gate) in circ
-            .gates
-            .chunk_by(|a, b| a.max_input() == b.max_input())
-            .enumerate()
-            .flat_map(|(i, chunk)| {
-                std::iter::repeat(
-                    i32::try_from(i)
-                        .expect("circuit should never exceed u16::MAX and i32::MAX > u16::MAX"),
-                )
-                .zip(chunk.iter().copied())
-                .enumerate()
-                .map(|(row, (col, gate))| {
-                    (
-                        i32::try_from(row)
-                            .expect("circuit should never exceed u16::MAX and i32::MAX > u16::MAX"),
-                        col,
-                        gate,
-                    )
-                })
-            })
-        {
-            const GRID_SIZE: i32 = 6;
-            const INPUT_WIDTH: i32 = 5 * GRID_SIZE;
-            const INPUT_HEIGHT: i32 = 1 * GRID_SIZE;
-            const GATE_WIDTH: i32 = 3 * GRID_SIZE;
-            const GATE_HEIGHT: i32 = 3 * GRID_SIZE;
-            const ELEMENT_GAP: i32 = 2 * GRID_SIZE;
-
-            let x = INPUT_WIDTH + (ELEMENT_GAP + GATE_WIDTH) * col;
-            let y = (ELEMENT_GAP + GATE_HEIGHT) * row;
-            let (w, h) = match gate {
-                Gate::Input(_) => (INPUT_WIDTH, INPUT_HEIGHT),
-                _ => (GATE_WIDTH, GATE_HEIGHT),
-            };
-            elements.push(Element {
-                x,
-                y,
-                w,
-                h,
-                data: match gate {
-                    Gate::Buffer(_) => ElementData::DelayGate,
-                    Gate::And(_, _) => ElementData::AndGate,
-                    Gate::Or(_, _) => ElementData::OrGate,
-                    Gate::Xor(_, _) => ElementData::XorGate,
-                    Gate::Not(_) => ElementData::NotGate,
-                    Gate::Nand(_, _) => ElementData::NandGate,
-                    Gate::Nor(_, _) => ElementData::NorGate,
-                    Gate::Xnor(_, _) => ElementData::XnorGate,
-                    Gate::Input(name) => ElementData::InputPin { name },
-                },
-            });
-        }
-        Diagram { elements }
     }
 }
