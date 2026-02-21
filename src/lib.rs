@@ -1,8 +1,8 @@
 #![forbid(clippy::undocumented_unsafe_blocks, clippy::missing_safety_doc)]
 
 use arrayvec::ArrayVec;
-use pyo3::{PyErr, exceptions::PyValueError, prelude::*};
 use rand::prelude::*;
+use serde::Serialize;
 use std::num::{NonZeroU8, NonZeroU16};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -16,6 +16,43 @@ pub enum Operator {
     Nand,
     Nor,
     Xnor,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct UnknownOpError(String);
+
+impl std::fmt::Display for UnknownOpError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "unknown operator: {}", self.0)
+    }
+}
+
+impl std::error::Error for UnknownOpError {}
+
+impl std::str::FromStr for Operator {
+    type Err = UnknownOpError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.eq_ignore_ascii_case("buffer") {
+            Ok(Operator::Buffer)
+        } else if s.eq_ignore_ascii_case("and") {
+            Ok(Operator::And)
+        } else if s.eq_ignore_ascii_case("or") {
+            Ok(Operator::Or)
+        } else if s.eq_ignore_ascii_case("xor") {
+            Ok(Operator::Xor)
+        } else if s.eq_ignore_ascii_case("not") {
+            Ok(Operator::Not)
+        } else if s.eq_ignore_ascii_case("nand") {
+            Ok(Operator::Nand)
+        } else if s.eq_ignore_ascii_case("nor") {
+            Ok(Operator::Nor)
+        } else if s.eq_ignore_ascii_case("xnor") {
+            Ok(Operator::Xnor)
+        } else {
+            Err(UnknownOpError(s.to_string()))
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
@@ -58,6 +95,22 @@ impl std::ops::IndexMut<Operator> for OpList {
             Operator::Nand => &mut self.nand,
             Operator::Nor => &mut self.nor,
             Operator::Xnor => &mut self.xnor,
+        }
+    }
+}
+
+impl FromIterator<Operator> for OpList {
+    fn from_iter<T: IntoIterator<Item = Operator>>(iter: T) -> Self {
+        let mut ops = OpList::default();
+        ops.extend(iter);
+        ops
+    }
+}
+
+impl Extend<Operator> for OpList {
+    fn extend<T: IntoIterator<Item = Operator>>(&mut self, iter: T) {
+        for op in iter {
+            self[op] = true;
         }
     }
 }
@@ -134,8 +187,17 @@ impl OpList {
 
 /// Negative = no subscript
 /// Positive = subscript is that number
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, IntoPyObject)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct VarName(i8);
+
+impl Serialize for VarName {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
 
 impl VarName {
     #[inline]
@@ -408,7 +470,7 @@ impl std::fmt::Display for AddGateError {
 impl std::error::Error for AddGateError {}
 
 /// Number fields are input indices
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, IntoPyObject)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
 pub enum Gate {
     Buffer(u16),
     And(u16, u16),
@@ -421,7 +483,35 @@ pub enum Gate {
     Variable(VarName),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+impl Gate {
+    pub const fn max_input(self) -> Option<u16> {
+        match self {
+            Self::Buffer(x) | Self::Not(x) => Some(x),
+            Self::And(a, b)
+            | Self::Or(a, b)
+            | Self::Xor(a, b)
+            | Self::Nand(a, b)
+            | Self::Nor(a, b)
+            | Self::Xnor(a, b) => Some(if a < b { b } else { a }),
+            Self::Variable(_) => None,
+        }
+    }
+
+    pub const fn min_input(self) -> Option<u16> {
+        match self {
+            Self::Buffer(x) | Self::Not(x) => Some(x),
+            Self::And(a, b)
+            | Self::Or(a, b)
+            | Self::Xor(a, b)
+            | Self::Nand(a, b)
+            | Self::Nor(a, b)
+            | Self::Xnor(a, b) => Some(if a < b { a } else { b }),
+            Self::Variable(_) => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize)]
 pub struct Rectangle {
     x: u32,
     y: u32,
@@ -429,7 +519,7 @@ pub struct Rectangle {
     h: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
 pub struct Element {
     pub rect: Rectangle,
     pub gate: Gate,
@@ -453,7 +543,7 @@ impl Gate {
 /// Append only, no remove.
 ///
 /// Gates should never connect to a gate at a higher index than their own.
-#[derive(Debug, Clone, IntoPyObject)]
+#[derive(Debug, Clone)]
 pub struct Circuit {
     /// Inputs are all first.
     gates: Vec<Gate>,
@@ -569,7 +659,7 @@ impl Circuit {
     /// Convert a circuit to a [`BooleanExpr`]
     ///
     /// Returns [`None`] if circuit is empty
-    pub fn to_boolean_expr(&self) -> Option<BooleanExpr> {
+    pub fn to_boolean_expr(&self) -> BooleanExpr {
         // Assumes no gate connects to a gate at a greater index than its own.
 
         fn convert(src: &[Gate], idx: u16) -> BooleanExpr {
@@ -586,54 +676,63 @@ impl Circuit {
             }
         }
 
-        u16::try_from(self.gates.len())
-            .expect("circuit should not exceed u16::MAX elements")
-            .checked_sub(1)
-            .map(|root| convert(self.gates.as_slice(), root))
+        let root = u16::try_from(
+            self.gates
+                .len()
+                .checked_sub(1)
+                .expect("NonZero inputs and lack of removal should guarantee non-empty circuits"),
+        )
+        .expect("circuit should not exceed u16::MAX elements");
+        convert(self.gates.as_slice(), root)
+    }
+
+    pub fn to_diagram(&self) -> Diagram {
+        let mut elements = Vec::with_capacity(self.gates.len());
+        for (row, col, gate) in self
+            .gates
+            .chunk_by(|a, b| a.max_input() == b.max_input())
+            .enumerate()
+            .flat_map(|(i, chunk)| {
+                std::iter::repeat(
+                    u32::try_from(i)
+                        .expect("circuit should never exceed u16::MAX and u32::MAX > u16::MAX"),
+                )
+                .zip(chunk.iter().copied())
+                .enumerate()
+                .map(|(row, (col, gate))| {
+                    (
+                        u32::try_from(row)
+                            .expect("circuit should never exceed u16::MAX and u32::MAX > u16::MAX"),
+                        col,
+                        gate,
+                    )
+                })
+            })
+        {
+            const INPUT_WIDTH: u32 = 5;
+            const INPUT_HEIGHT: u32 = 1;
+            const GATE_WIDTH: u32 = 3;
+            const GATE_HEIGHT: u32 = 3;
+            const ELEMENT_GAP: u32 = 2;
+
+            let x = INPUT_WIDTH + (ELEMENT_GAP + GATE_WIDTH) * col;
+            let y = (ELEMENT_GAP + GATE_HEIGHT) * row;
+            let (w, h) = match gate {
+                Gate::Variable(_) => (INPUT_WIDTH, INPUT_HEIGHT),
+                _ => (GATE_WIDTH, GATE_HEIGHT),
+            };
+            elements.push(Element {
+                rect: Rectangle { x, y, w, h },
+                gate,
+            });
+        }
+        Diagram { elements }
     }
 }
 
-#[pymodule]
-mod logic_expression_generator {
-    use super::*;
-
-    #[pyfunction]
-    fn generate_random_circuit(
-        input_count: u8,
-        depth: u16,
-        operators: Vec<String>,
-    ) -> PyResult<Option<Circuit>> {
-        let mut ops = OpList::default();
-        for op in operators {
-            if op.eq_ignore_ascii_case("buffer") {
-                ops.buffer |= true;
-            } else if op.eq_ignore_ascii_case("and") {
-                ops.and |= true;
-            } else if op.eq_ignore_ascii_case("or") {
-                ops.or |= true;
-            } else if op.eq_ignore_ascii_case("xor") {
-                ops.xor |= true;
-            } else if op.eq_ignore_ascii_case("not") {
-                ops.not |= true;
-            } else if op.eq_ignore_ascii_case("nand") {
-                ops.nand |= true;
-            } else if op.eq_ignore_ascii_case("nor") {
-                ops.nor |= true;
-            } else if op.eq_ignore_ascii_case("xnor") {
-                ops.xnor |= true;
-            } else {
-                return Err(PyErr::new::<PyValueError, _>(format!(
-                    "unrecognized operator: \"{op}\""
-                )));
-            }
-        }
-        NonZeroU8::new(input_count)
-            .zip(NonZeroU16::new(depth))
-            .map(|(input_count, depth)| Circuit::generate_random(input_count, depth, ops))
-            .ok_or(PyErr::new::<PyValueError, _>(
-                "input_count and depth must be non-zero",
-            ))
-    }
+#[derive(Debug, Clone, Serialize)]
+pub struct Diagram {
+    elements: Vec<Element>,
 }
 
 #[cfg(test)]
@@ -649,17 +748,6 @@ mod tests {
     }
 
     #[test]
-    fn test_empty_to_boolean_expr() {
-        assert_eq!(
-            Circuit {
-                gates: Vec::from([])
-            }
-            .to_boolean_expr(),
-            None
-        );
-    }
-
-    #[test]
     fn test_var_to_boolean_expr() {
         let a = VarName::from_char('a');
         assert_eq!(
@@ -667,7 +755,7 @@ mod tests {
                 gates: Vec::from([Gate::Variable(a)])
             }
             .to_boolean_expr(),
-            Some(BooleanExpr::Variable(a))
+            BooleanExpr::Variable(a)
         );
     }
 
@@ -679,7 +767,7 @@ mod tests {
                 gates: Vec::from([Gate::Variable(a), Gate::Buffer(0)])
             }
             .to_boolean_expr(),
-            Some(BooleanExpr::Variable(a).buffer())
+            BooleanExpr::Variable(a).buffer()
         );
     }
 
@@ -692,7 +780,7 @@ mod tests {
                 gates: Vec::from([Gate::Variable(a), Gate::Variable(b), Gate::And(0, 1),])
             }
             .to_boolean_expr(),
-            Some(BooleanExpr::Variable(a).and(BooleanExpr::Variable(b)))
+            BooleanExpr::Variable(a).and(BooleanExpr::Variable(b))
         );
     }
 
@@ -710,10 +798,7 @@ mod tests {
                 ])
             }
             .to_boolean_expr(),
-            Some(
-                BooleanExpr::Variable(a)
-                    .nor(BooleanExpr::Variable(a).and(BooleanExpr::Variable(b)))
-            )
+            BooleanExpr::Variable(a).nor(BooleanExpr::Variable(a).and(BooleanExpr::Variable(b)))
         );
     }
 
@@ -776,7 +861,7 @@ mod tests {
         .unwrap();
         println!("{circ:?}");
         println!();
-        let expr = circ.to_boolean_expr().unwrap();
+        let expr = circ.to_boolean_expr();
         println!("{expr:?}");
         println!();
         println!("LaTeX: {}", expr.to_tex(Default::default()));
