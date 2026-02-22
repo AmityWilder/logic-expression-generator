@@ -169,41 +169,40 @@ impl Diagram {
         // output element id = 2*circuit id + 1
         // input0/1 element ids = (arbitrary for now)
 
-        circ.memoize_all_depths();
-        for (i, row, col, gate) in circ
+        for (i, row, col, node) in circ
             .gates
-            .chunk_by(|(_, a_depth), (_, b_depth)| a_depth == b_depth)
+            .chunk_by(|a, b| a.depth == b.depth)
             .enumerate()
             .flat_map(|(i, chunk)| {
                 std::iter::repeat(
                     i32::try_from(i)
                         .expect("circuit should never exceed u16::MAX elements, and i32::MAX > u16::MAX"),
                 )
-                .zip(chunk.iter().map(|(gate, _)| gate).copied())
+                .zip(chunk)
                 .enumerate()
-                .map(|(row, (col, gate))| {
+                .map(|(row, (col, node))| {
                     (
                         i32::try_from(row)
                             .expect("circuit should never exceed u16::MAX elements, and i32::MAX > u16::MAX"),
                         col,
-                        gate,
+                        node,
                     )
                 })
             })
             .enumerate()
-            .map(|(i, (row, col, gate))| {
+            .map(|(i, (row, col, node))| {
                 (
                     u32::try_from(i)
                         .expect("circuit should never exceed u16::MAX elements, and u32::MAX > u16::MAX"),
                     row,
                     col,
-                    gate,
+                    node,
                 )
             })
         {
             let x = (ELEMENT_GAP + GATE_WIDTH) * col + ELEMENT_GAP;
             let y = (ELEMENT_GAP + GATE_HEIGHT) * row + ELEMENT_GAP;
-            let (w, h) = if matches!(gate, Gate::Input(_)) {
+            let (w, h) = if matches!(node.gate, Gate::Input(_)) {
                 (INPUT_WIDTH, INPUT_HEIGHT)
             } else {
                 (GATE_WIDTH, GATE_HEIGHT)
@@ -215,7 +214,7 @@ impl Diagram {
                 y,
                 w,
                 h,
-                data: ElementData::from(gate),
+                data: ElementData::from(node.gate),
             });
 
             // output WireEnd (2*id + 1)
@@ -237,7 +236,7 @@ impl Diagram {
         let mut wire_id = 2 * u32::try_from(circ.gates.len())
             .expect("circuit should never exceed u16::MAX elements, and u32::MAX > u16::MAX");
 
-        for (i, (gate, _depth)) in circ.gates.iter().enumerate().map(|(i, gate)| {
+        for (i, node) in circ.gates.iter().enumerate().map(|(i, gate)| {
             (
                 u32::try_from(i).expect(
                     "circuit should never exceed u16::MAX elements, and u32::MAX > u16::MAX",
@@ -252,7 +251,7 @@ impl Diagram {
 
             // inputs
 
-            match gate {
+            match &node.gate {
                 &(Gate::Buffer(a) | Gate::Not(a)) => {
                     let a_wire_id = 2 * a as u32 + 1;
                     // create wire from source

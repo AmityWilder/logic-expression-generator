@@ -3,10 +3,7 @@
 use arrayvec::ArrayVec;
 use rand::prelude::*;
 use serde::Serialize;
-use std::{
-    cell::OnceCell,
-    num::{NonZeroU8, NonZeroU16},
-};
+use std::num::{NonZeroU8, NonZeroU16};
 
 use crate::jls::Diagram;
 
@@ -533,90 +530,54 @@ impl Gate {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Node {
+    pub gate: Gate,
+    pub depth: u16,
+}
+
 /// Append only, no remove.
 ///
 /// Gates should never connect to a gate at a higher index than their own.
 #[derive(Debug, Clone)]
 pub struct Circuit {
     /// Inputs are all first.
-    gates: Vec<(Gate, OnceCell<u16>)>,
+    gates: Vec<Node>,
 }
 
-impl<T: IntoIterator<Item = Gate>> From<T> for Circuit {
+impl std::ops::Index<u16> for Circuit {
+    type Output = Node;
+
+    #[inline]
+    fn index(&self, index: u16) -> &Self::Output {
+        &self.gates[index as usize]
+    }
+}
+
+impl std::ops::IndexMut<u16> for Circuit {
+    #[inline]
+    fn index_mut(&mut self, index: u16) -> &mut Self::Output {
+        &mut self.gates[index as usize]
+    }
+}
+
+impl<T: IntoIterator<Item = Node>> From<T> for Circuit {
     fn from(value: T) -> Self {
         Self {
-            gates: value
-                .into_iter()
-                .zip(std::iter::repeat(OnceCell::new()))
-                .collect(),
+            gates: Vec::from_iter(value),
         }
     }
 }
 
 impl Circuit {
-    /// Recursively calculates the depth of the provided gate without mutating
-    #[must_use]
-    pub fn depth_of(&self, gate: u16) -> u16 {
-        let (gate, depth) = &self.gates[gate as usize];
-        *depth.get_or_init(|| match *gate {
-            Gate::Buffer(a) | Gate::Not(a) => self.depth_of(a) + 1,
-
-            Gate::And(a, b)
-            | Gate::Or(a, b)
-            | Gate::Xor(a, b)
-            | Gate::Nand(a, b)
-            | Gate::Nor(a, b)
-            | Gate::Xnor(a, b) => self.depth_of(a).max(self.depth_of(b)) + 1,
-
-            Gate::Input(_) => 0,
-        })
-    }
-
-    pub fn memoize_all_depths(&self) {
-        while let Some(i) = self
-            .gates
-            .iter()
-            .rev()
-            .position(|(_, depth)| depth.get().is_none())
-        {
-            _ = self.depth_of(u16::try_from(i).expect("circuit should not exceed u16::MAX gates"));
-        }
-    }
-
     /// Returns the index of the newly added gate.
     ///
     /// Element is not added on error.
-    pub fn add_gate(&mut self, gate: Gate) -> Result<u16, AddGateError> {
-        if gate.is_valid(self.gates.len()) {
+    pub fn push(&mut self, node: Node) -> Result<u16, AddGateError> {
+        if node.gate.is_valid(self.gates.len()) {
             u16::try_from(self.gates.len())
                 .map_err(|_| AddGateError::OutOfIds)
-                .inspect(|_| self.gates.push((gate, OnceCell::new())))
-        } else {
-            Err(AddGateError::IndexOutOfBounds)
-        }
-    }
-
-    /// Returns an iterator over the indices of the newly added gates.
-    ///
-    /// No elements are added on error.
-    pub fn add_gates(&mut self, gates: &[Gate]) -> Result<std::ops::Range<u16>, AddGateError> {
-        let start =
-            u16::try_from(self.gates.len()).expect("circuit should never exceed u16::MAX elements");
-        let end = self
-            .gates
-            .len()
-            .checked_add(gates.len())
-            .and_then(|n| u16::try_from(n).ok())
-            .ok_or(AddGateError::OutOfIds)?;
-        if gates.iter().enumerate().all(|(i, gate)| gate.is_valid(i)) {
-            self.gates.reserve(gates.len());
-            self.gates.extend(
-                gates
-                    .iter()
-                    .copied()
-                    .zip(std::iter::repeat(OnceCell::new())),
-            );
-            Ok(start..end)
+                .inspect(|_| self.gates.push(node))
         } else {
             Err(AddGateError::IndexOutOfBounds)
         }
@@ -652,25 +613,31 @@ impl Circuit {
                 NON_SUBSCRIPT_NAMES
                     .iter()
                     .take(input_count.get() as usize)
-                    .map(|&v| Gate::Input(VarName(-(v as i8))))
-                    .zip(std::iter::repeat(OnceCell::new())),
+                    .map(|&v| Node {
+                        gate: Gate::Input(VarName(-(v as i8))),
+                        depth: 0,
+                    }),
             );
         } else {
-            circuit.gates.extend(
-                (0..input_count.get())
-                    .map(|v| Gate::Input(VarName(v as i8)))
-                    .zip(std::iter::repeat(OnceCell::new())),
-            );
+            circuit.gates.extend((0..input_count.get()).map(|v| Node {
+                gate: Gate::Input(VarName(v as i8)),
+                depth: 0,
+            }));
         };
 
         let n = input_count.get() as u16;
-        for i in (0..depth.get()).map(|i| i + n) {
-            let gate =
-                if i >= 2 {
-                    let [a, b] = rand::seq::index::sample_array::<_, 2>(&mut rng, i as usize)
-                        .expect("should be guaranteed by i>=2");
+        let mut total_in_previous_layers = n;
+        for layer in (0..depth.get()).map(|i| i + n) {
+            let layer_width = rng.random_range(1..=input_count.get() as u16);
+            for _ in 0..layer_width {
+                let gate = if layer >= 2 {
+                    let [a, b] = rand::seq::index::sample_array::<_, 2>(
+                        &mut rng,
+                        total_in_previous_layers as usize,
+                    )
+                    .expect("should be guaranteed by i>=2");
                     let [a, b] = [a as u16, b as u16];
-                    let (a, b) = if (circuit.depth_of(a), a) < (circuit.depth_of(b), b) {
+                    let (a, b) = if (circuit[a].depth, a) < (circuit[b].depth, b) {
                         (a, b)
                     } else {
                         (b, a)
@@ -689,7 +656,7 @@ impl Circuit {
                         Operator::Xnor => Gate::Xnor(a, b),
                     }
                 } else {
-                    let a = rand::random_range(..i);
+                    let a = rand::random_range(..total_in_previous_layers);
                     match mono_ops.choose(&mut rng).copied().expect(
                         "should have exited if only one input and no single-input operators",
                     ) {
@@ -698,16 +665,18 @@ impl Circuit {
                         _ => unreachable!("mono_ops should never contain a multi-input operator"),
                     }
                 };
-            circuit
-                .add_gate(gate)
-                .expect("for loop should ensure increment, and ID count should be guarded against");
+                circuit.push(Node { gate, depth: layer }).expect(
+                    "for loop should ensure increment, and ID count should be guarded against",
+                );
+            }
+            total_in_previous_layers += layer_width;
         }
         Some(circuit)
     }
 
     #[must_use]
     fn bool_expr_of(&self, idx: u16) -> BooleanExpr {
-        match self.gates[idx as usize].0 {
+        match self.gates[idx as usize].gate {
             Gate::Buffer(x) => self.bool_expr_of(x).buffer(),
             Gate::And(a, b) => self.bool_expr_of(a).and(self.bool_expr_of(b)),
             Gate::Or(a, b) => self.bool_expr_of(a).or(self.bool_expr_of(b)),
@@ -729,7 +698,7 @@ impl Circuit {
         let num_gates =
             u16::try_from(self.gates.len()).expect("circuit should not exceed u16::MAX gates");
         let min_without_output = (0..num_gates)
-            .map(|gate| self.depth_of(gate))
+            .map(|idx| self[idx].depth)
             .max() // max with output
             .and_then(|n| n.checked_add(1));
         if let Some(min_without_output) = min_without_output {
@@ -769,7 +738,11 @@ mod tests {
     fn test_var_to_boolean_expr() {
         let a = VarName::from_char('a');
         assert_eq!(
-            Circuit::from([Gate::Input(a)]).to_boolean_expr(),
+            Circuit::from([Node {
+                gate: Gate::Input(a),
+                depth: 0
+            }])
+            .to_boolean_expr(),
             &[BooleanExpr::Variable(a)]
         );
     }
@@ -778,7 +751,17 @@ mod tests {
     fn test_buffer_to_boolean_expr() {
         let a = VarName::from_char('a');
         assert_eq!(
-            Circuit::from([Gate::Input(a), Gate::Buffer(0)]).to_boolean_expr(),
+            Circuit::from([
+                Node {
+                    gate: Gate::Input(a),
+                    depth: 0
+                },
+                Node {
+                    gate: Gate::Buffer(0),
+                    depth: 1
+                }
+            ])
+            .to_boolean_expr(),
             &[BooleanExpr::Variable(a).buffer()]
         );
     }
@@ -788,7 +771,21 @@ mod tests {
         let a = VarName::from_char('a');
         let b = VarName::from_char('b');
         assert_eq!(
-            Circuit::from([Gate::Input(a), Gate::Input(b), Gate::And(0, 1),]).to_boolean_expr(),
+            Circuit::from([
+                Node {
+                    gate: Gate::Input(a),
+                    depth: 0
+                },
+                Node {
+                    gate: Gate::Input(b),
+                    depth: 0
+                },
+                Node {
+                    gate: Gate::And(0, 1),
+                    depth: 1
+                },
+            ])
+            .to_boolean_expr(),
             [BooleanExpr::Variable(a).and(BooleanExpr::Variable(b))]
         );
     }
@@ -799,10 +796,22 @@ mod tests {
         let b = VarName::from_char('b');
         assert_eq!(
             Circuit::from([
-                Gate::Input(a),
-                Gate::Input(b),
-                Gate::And(0, 1),
-                Gate::Nor(0, 2)
+                Node {
+                    gate: Gate::Input(a),
+                    depth: 0
+                },
+                Node {
+                    gate: Gate::Input(b),
+                    depth: 0
+                },
+                Node {
+                    gate: Gate::And(0, 1),
+                    depth: 1
+                },
+                Node {
+                    gate: Gate::Nor(0, 2),
+                    depth: 2
+                },
             ])
             .to_boolean_expr(),
             [
